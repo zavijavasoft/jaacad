@@ -19,6 +19,7 @@ import java.util.Date;
 import java.util.Deque;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -54,10 +55,17 @@ public class CacheManager {
     }
 
 
-    public void saveCachedGallery() {
+    /***
+     * Сохраняет кэш галереи в JSON-документ
+     * @param bAuthorized
+     */
+    public void saveCachedGallery(boolean bAuthorized) {
         FileOutputStream os = null;
         try {
             JSONObject doc = new JSONObject();
+
+            doc.put("authorized", bAuthorized);
+
             JSONArray arrImgCache = new JSONArray();
             for(String s : imageCache){
                 arrImgCache.put(s);
@@ -106,7 +114,12 @@ public class CacheManager {
 
     }
 
-    public void loadCachedGallery() {
+    /***
+     * Загружает кэш галереи из JSON-документа
+     * @param bAuthorized Флаг, указывающий, что приложение авторизовано/не авторизовано в момент
+     *                    вызова метода.
+     */
+    public void loadCachedGallery(boolean bAuthorized) {
         FileInputStream is = null;
         Date now = new Date();
         try {
@@ -115,7 +128,9 @@ public class CacheManager {
             byte [] data = new byte[is.available()];
             is.read(data);
 
+
             JSONObject doc = new JSONObject(new String(data));
+            boolean cacheAuthorized = doc.getBoolean("authorized");
             imageCache.clear();
             JSONArray arrImgCache = (JSONArray)doc.get("imageCache");
             for(int i = 0; i < arrImgCache.length(); i++){
@@ -123,42 +138,49 @@ public class CacheManager {
             }
             thumbnailCache.clear();
             JSONArray arrThumbCache = (JSONArray)doc.get("thumbnailsCache");
+
             for(int i = 0; i < arrThumbCache.length(); i++){
-                imageCache.push((String) arrImgCache.get(i));
+                thumbnailCache.push((String) arrThumbCache.get(i));
             }
             entities.clear();
-            JSONArray arr = (JSONArray)doc.get("entities");
-            for (int i = 0; i < arr.length(); i++){
-                JSONObject ent = arr.getJSONObject(i);
-                GalleryEntity e = new GalleryEntity();
-                e.setResourceId((String) ent.get("resourceId"));
-                e.setKeyColor((Integer) ent.get("keyColor"));
-                e.setPathToThumbnail((String)ent.get("pathToPreview"));
-                e.setPathToImage((String)ent.get("pathToImage"));
-                e.setThumbnailUrl((String)ent.get("thumbnailUrl"));
-                e.setImageUrl((String)ent.get("imageUrl"));
-                e.setFileName((String)ent.get("fileName"));
+            // Тут сверяются состояния авторизации приложения на момент сохранения кэша и текущее.
+            // Если при сохранении приложение было авторизовано, то в кэше содержатся защищенные
+            // ссылки на превью. Неавторизованное приложение их не сможет отобразить, поэтому смысла
+            // их считывать нет.
+            if (bAuthorized || !cacheAuthorized) {
+                JSONArray arr = (JSONArray) doc.get("entities");
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject ent = arr.getJSONObject(i);
+                    GalleryEntity e = new GalleryEntity();
+                    e.setResourceId((String) ent.get("resourceId"));
+                    e.setKeyColor((Integer) ent.get("keyColor"));
+                    e.setPathToThumbnail((String) ent.get("pathToPreview"));
+                    e.setPathToImage( ent.optString("pathToImage"));
+                    e.setThumbnailUrl((String) ent.get("thumbnailUrl"));
+                    e.setImageUrl((String) ent.get("imageUrl"));
+                    e.setFileName((String) ent.get("fileName"));
 
-                Date loadedDateTime = new Date((long) ent.get("loadedDateTime"));
-                e.setLoadedDateTime(loadedDateTime);
-                e.setState(GalleryEntity.State.IMAGE);
+                    Date loadedDateTime = new Date((long) ent.get("loadedDateTime"));
+                    e.setLoadedDateTime(loadedDateTime);
+                    e.setState(GalleryEntity.State.IMAGE);
 
-                Calendar cal = new GregorianCalendar();
-                cal.setTime(loadedDateTime);
-                cal.add(Calendar.HOUR, IMAGE_EXPIRY_PERIOD);
-                if (now.after(cal.getTime())){
-                    File fImage = new File(e.getPathToImage());
-                    fImage.delete();
-                    e.setState(GalleryEntity.State.THUMBNAIL);
+                    Calendar cal = new GregorianCalendar();
+                    cal.setTime(loadedDateTime);
+                    cal.add(Calendar.HOUR, IMAGE_EXPIRY_PERIOD);
+                    if (!e.getPathToImage().isEmpty() && now.after(cal.getTime())) {
+                        File fImage = new File(e.getPathToImage());
+                        fImage.delete();
+                        e.setState(GalleryEntity.State.THUMBNAIL);
+                    }
+                    cal.setTime(loadedDateTime);
+                    cal.add(Calendar.HOUR, THUMBNAIL_EXPIRY_PERIOD);
+                    if (now.after(cal.getTime())) {
+                        File fThumbnail = new File(e.getPathToThumbnail());
+                        fThumbnail.delete();
+                        e.setState(GalleryEntity.State.ONCE_LOADED);
+                    }
+                    entities.add(e);
                 }
-                cal.setTime(loadedDateTime);
-                cal.add(Calendar.HOUR, THUMBNAIL_EXPIRY_PERIOD);
-                if (now.after(cal.getTime())){
-                    File fThumbnail = new File(e.getPathToThumbnail());
-                    fThumbnail.delete();
-                    e.setState(GalleryEntity.State.ONCE_LOADED);
-                }
-                entities.add(e);
             }
 
 
