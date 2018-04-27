@@ -16,6 +16,8 @@ import android.widget.TextView;
 
 import com.zavijavasoft.jaacad.utils.ColorSelector;
 
+import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ThumbnailViewHolder> {
@@ -33,6 +35,8 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.Thumbnai
         ImageView thumbnailImage;
         String url;
         String thumbnailPath;
+        String fileName;
+        String imageId;
 
         ThumbnailViewHolder(View itemView, final ShowImageCallback callback) {
             super(itemView);
@@ -47,14 +51,14 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.Thumbnai
             cv.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    callback.showImage(thumbnailPath, url);
+                    callback.showImage(thumbnailPath, url, fileName, imageId);
                 }
             });
         }
     }
 
-    GalleryAdapter(List<GalleryEntity> entities, ShowImageCallback callback) {
-        this.entities = entities;
+    GalleryAdapter(ShowImageCallback callback) {
+        this.entities = new LinkedList<>();
         this.callback = callback;
     }
 
@@ -71,6 +75,8 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.Thumbnai
         GalleryEntity entity = entities.get(position);
         holder.thumbnailPath = entity.getPathToThumbnail();
         holder.url = entity.getImageUrl();
+        holder.fileName = entity.getFileName();
+        holder.imageId = entity.getResourceId();
         switch (entity.getState()) {
             case NONE:
             case NOT_LOADED:
@@ -103,7 +109,8 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.Thumbnai
         notifyDataSetChanged();
     }
 
-    public void update(GalleryEntity entity) {
+
+     public void update(GalleryEntity entity) {
         int fixed = entities.size();
         int keyColor = ColorSelector.getColor();
         for (int pos = 0; pos < entities.size(); pos++) {
@@ -119,6 +126,10 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.Thumbnai
         entity.setKeyColor(keyColor);
         entities.add(fixed, entity);
         notifyDataSetChanged();
+    }
+
+    public List<GalleryEntity> getEntities() {
+        return entities;
     }
 
     public void updateProgress(String id, long loaded, long total) {
