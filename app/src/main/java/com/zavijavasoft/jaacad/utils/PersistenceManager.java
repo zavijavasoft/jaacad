@@ -173,4 +173,57 @@ public class PersistenceManager {
 
     }
 
+    public void checkStates(){
+        for(GalleryEntity e : entities){
+            if (e.getState() == GalleryEntity.State.IMAGE){
+                if (new File(e.getPathToImage()).exists())
+                    continue;
+                e.setState(GalleryEntity.State.THUMBNAIL);
+            }
+            if (e.getState() == GalleryEntity.State.THUMBNAIL){
+                if (new File(e.getPathToThumbnail()).exists())
+                    continue;
+                e.setState(GalleryEntity.State.ONCE_LOADED);
+            }
+        }
+    }
+
+    public void clearCaches(){
+        while(!imageCache.isEmpty()){
+            String toDelete = imageCache.pollLast();
+            File file = new File(toDelete);
+            file.delete();
+        }
+        while(!thumbnailCache.isEmpty()){
+            String toDelete = thumbnailCache.pollLast();
+            File file = new File(toDelete);
+            file.delete();
+        }
+    }
+
+    private void removeDuplicate(String filename, Deque<String> queue){
+        for (String s : queue){
+            if (s.equals(filename))
+                queue.remove(s);
+        }
+    }
+
+    public void addFileToCache(String fileName, boolean isThumbnail){
+        Deque<String> queue = imageCache;
+        int max = IMAGE_CACHE_SIZE;
+        if (isThumbnail) {
+            queue = thumbnailCache;
+            max = THUMBNAIL_CACHE_SIZE;
+        }
+
+        removeDuplicate(fileName, queue);
+        queue.addFirst(fileName);
+        if (queue.size() > max){
+            String sExceeded = queue.pollLast();
+            File file = new File(sExceeded);
+            file.delete();
+            checkStates();
+        }
+    }
+
 }

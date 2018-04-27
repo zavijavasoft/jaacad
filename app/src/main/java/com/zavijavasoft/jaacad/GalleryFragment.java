@@ -33,7 +33,6 @@ public class GalleryFragment extends Fragment {
     private ResultReceiver resultReceiver;
 
 
-    private CacheManager cache;
     private AuthService authService;
     private RecyclerView recyclerView;
     private GalleryAdapter galleryAdapter;
@@ -47,7 +46,6 @@ public class GalleryFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Context context = getActivity().getApplicationContext();
-        cache = CacheManager.getInstance(context);
         authService = AuthService.getInstance(context);
         galleryAdapter = new GalleryAdapter((ShowImageCallback) getActivity());
     }
