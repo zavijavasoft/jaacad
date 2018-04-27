@@ -1,8 +1,12 @@
 package com.zavijavasoft.jaacad;
 
+import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.Date;
 
-public class GalleryEntity {
+public class GalleryEntity implements Parcelable {
 
     public enum State{
         NONE,
@@ -21,9 +25,10 @@ public class GalleryEntity {
     private int keyColor;
     private String pathToThumbnail;
     private String pathToImage;
-    private Date loadedDateTime;
+    private Date loadedDateTime = new Date();
     private String fileName;
     private int progressValue;
+
 
     public String getResourceId() {
         return resourceId;
@@ -104,4 +109,54 @@ public class GalleryEntity {
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
     }
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(this.state == null ? -1 : this.state.ordinal());
+        dest.writeString(this.resourceId);
+        dest.writeString(this.thumbnailUrl);
+        dest.writeString(this.imageUrl);
+        dest.writeInt(this.keyColor);
+        dest.writeString(this.pathToThumbnail);
+        dest.writeString(this.pathToImage);
+        dest.writeLong(this.loadedDateTime != null ? this.loadedDateTime.getTime() : -1);
+        dest.writeString(this.fileName);
+        dest.writeInt(this.progressValue);
+    }
+
+    public GalleryEntity() {
+    }
+
+    protected GalleryEntity(Parcel in) {
+        int tmpState = in.readInt();
+        this.state = tmpState == -1 ? null : State.values()[tmpState];
+        this.resourceId = in.readString();
+        this.thumbnailUrl = in.readString();
+        this.imageUrl = in.readString();
+        this.keyColor = in.readInt();
+        this.pathToThumbnail = in.readString();
+        this.pathToImage = in.readString();
+        long tmpLoadedDateTime = in.readLong();
+        this.loadedDateTime = tmpLoadedDateTime == -1 ? null : new Date(tmpLoadedDateTime);
+        this.fileName = in.readString();
+        this.progressValue = in.readInt();
+    }
+
+    public static final Creator<GalleryEntity> CREATOR = new Creator<GalleryEntity>() {
+        @Override
+        public GalleryEntity createFromParcel(Parcel source) {
+            return new GalleryEntity(source);
+        }
+
+        @Override
+        public GalleryEntity[] newArray(int size) {
+            return new GalleryEntity[size];
+        }
+    };
 }
