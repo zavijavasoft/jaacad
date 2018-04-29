@@ -33,6 +33,7 @@ public class CoreService extends IntentService implements ProgressListener {
 
     public static final String TAG = CoreService.class.getCanonicalName();
 
+    public static final String KEY_REQUEST_ID = "com.zavijavasoft.jaacad.REQUEST_ID";
     public static final String KEY_INTENT_RECEIVER = "com.zavijavasoft.jaacad.INTENT_RECEIVER";
     public static final String KEY_INTENT_QUERY_TYPE = "com.zavijavasoft.jaacad.INTENT_QUERY_TYPE";
     public static final String KEY_INTENT_CACHELIST = "com.zavijavasoft.jaacad.INTENT_CACHELIST";
@@ -40,6 +41,8 @@ public class CoreService extends IntentService implements ProgressListener {
     public static final String KEY_RESULT_GALLERY_ENTITY = "com.zavijavasoft.jaacad.RESULT_GALLERY_ENTITY";
     public static final String KEY_RESULT_CACHE_SIZE = "com.zavijavasoft.jaacad.RESULT_CACHE_SIZE";
     public static final String KEY_RESULT_NETWORK_EXCEPTION = "com.zavijavasoft.jaacad.RESULT_NETWORK_EXCEPTION";
+    public static final String KEY_RESULT_IMAGE_DOWNLOAD_PROGRESS = "com.zavijavasoft.jaacad.RESULT_IMAGE_DOWNLOAD_PROGRESS";
+    public static final String KEY_RESULT_IMAGE_DOWNLOAD_ID = "com.zavijavasoft.jaacad.RESULT_IMAGE_DOWNLOAD_ID";
     public static final int CHECK_INTERNET_CONNECTION = 0;
     public static final int LOAD_LAST_100_AUTHORIZED = 1;
     public static final int LOAD_FIRST_100_AUTHORIZED = 2;
@@ -59,9 +62,11 @@ public class CoreService extends IntentService implements ProgressListener {
     public static final int THUMBNAIL_LOADED = 3;
     public static final int RESOURCE_MISSED = 4;
     public static final int IMAGE_LOADED = 5;
-    public static final String KEY_REQUEST_ID = "com.zavijavasoft.jaacad.REQUEST_ID";
+    public static final int IMAGE_LOADING_PROGRESS = 6;
+
     private final PersistenceManager persistenceManager = new PersistenceManager();
     private boolean checkInternetPending = false;
+    private ResultReceiver resultReceiver;
 
 
 
@@ -88,7 +93,7 @@ public class CoreService extends IntentService implements ProgressListener {
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
 
-        ResultReceiver resultReceiver = intent.getParcelableExtra(KEY_INTENT_RECEIVER);
+        resultReceiver = intent.getParcelableExtra(KEY_INTENT_RECEIVER);
         int queryType = intent.getIntExtra(KEY_INTENT_QUERY_TYPE, CHECK_INTERNET_CONNECTION);
 
         switch (queryType) {
@@ -337,7 +342,11 @@ public class CoreService extends IntentService implements ProgressListener {
 
     @Override
     public void updateProgress(long loaded, long total) {
-
+        if (total != 0){
+            Bundle bundle = new Bundle();
+            bundle.putLong(KEY_RESULT_IMAGE_DOWNLOAD_PROGRESS, (100 * loaded) / total);
+            resultReceiver.send(IMAGE_LOADING_PROGRESS, bundle);
+        }
     }
 
     @Override

@@ -52,6 +52,9 @@ public class ImageViewer extends View {
         canvas.drawBitmap(image, null, dst, paint);
     }
 
+    public void destroy(){
+        image = null;
+    }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {

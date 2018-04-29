@@ -15,13 +15,30 @@
     <!-- This FrameLayout insets its children based on system windows using
          android:fitsSystemWindows. -->
 
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fitsSystemWindows="true">
+
 
         <LinearLayout
-            android:id="@+id/fullscreen_content_controls"
+            android:id="@+id/fullscreen_upper_bar"
+            style="?metaButtonBarStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|center_horizontal"
+            android:background="@color/black_overlay"
+            android:orientation="horizontal"
+            tools:ignore="UselessParent">
+
+            <Button
+                android:id="@+id/dummy_button_1"
+                style="?metaButtonBarButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/dummy_button_upper" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/fullscreen_lower_bar"
             style="?metaButtonBarStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -39,6 +56,25 @@
                 android:text="@string/dummy_button" />
 
         </LinearLayout>
-    </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/fullscreen_shadow"
+            style="?metaButtonBarStyle"
+            android:visibility="invisible"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <ProgressBar
+                android:id="@+id/image_progressbar"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center"
+                android:indeterminate="false"
+                android:progressDrawable="@drawable/circular_progress_bar"
+                android:background="@drawable/circle_shape"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:max="100"
+                android:visibility="invisible"
+                android:progress="0" />
+        </FrameLayout>
 
 </FrameLayout>
