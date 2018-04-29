@@ -30,9 +30,8 @@ import java.util.concurrent.ExecutionException;
 
 public class GalleryFragment extends Fragment {
 
+    boolean blockNetworkExceptions = false;
     private ResultReceiver resultReceiver;
-
-
     private AuthService authService;
     private RecyclerView recyclerView;
     private GalleryAdapter galleryAdapter;
@@ -60,8 +59,19 @@ public class GalleryFragment extends Fragment {
     }
 
     @Override
+    public void onResume() {
+        blockNetworkExceptions = false;
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+    }
+
+    @Override
     public void onStop() {
-         super.onStop();
+        super.onStop();
     }
 
     @Override
@@ -74,6 +84,7 @@ public class GalleryFragment extends Fragment {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String username = preferences.getString(AuthService.USERNAME, null);
         String token = preferences.getString(AuthService.TOKEN, null);
+
         if (token == null)
             startActivityForResult(authService.getYandexAuthSdk().createLoginIntent(context, scopes), 1);
         else {
@@ -178,6 +189,9 @@ public class GalleryFragment extends Fragment {
 
             switch (resultCode) {
                 case CoreService.NETWORK_EXCEPTION: {
+                    if (blockNetworkExceptions)
+                        break;
+                    blockNetworkExceptions = true;
                     String message = resultData.getString(CoreService.KEY_RESULT_NETWORK_EXCEPTION);
                     Intent intent = new Intent(getActivity(), NoInternetActivity.class);
                     intent.putExtra(CoreService.KEY_RESULT_NETWORK_EXCEPTION, message);
@@ -185,8 +199,10 @@ public class GalleryFragment extends Fragment {
                     break;
                 }
 
-                case CoreService.INTERNET_LOST:
-               {
+                case CoreService.INTERNET_LOST: {
+                    if (blockNetworkExceptions)
+                        break;
+                    blockNetworkExceptions = true;
                     Intent intent = new Intent(getActivity(), NoInternetActivity.class);
                     getActivity().startActivity(intent);
                     break;
@@ -204,7 +220,7 @@ public class GalleryFragment extends Fragment {
                 case CoreService.CACHED_ENTITY_LOADED: {
                     GalleryEntity ge = resultData.getParcelable(CoreService.KEY_RESULT_GALLERY_ENTITY);
                     galleryAdapter.update(ge);
-                    if(ge.getState() == GalleryEntity.State.ONCE_LOADED){
+                    if (ge.getState() == GalleryEntity.State.ONCE_LOADED) {
                         Intent intent = new Intent(getActivity(), CoreService.class);
                         intent.putExtra(CoreService.KEY_INTENT_RECEIVER, resultReceiver);
                         intent.putExtra(CoreService.KEY_INTENT_QUERY_TYPE, CoreService.LOAD_SINGLE_THUMBNAIL);
