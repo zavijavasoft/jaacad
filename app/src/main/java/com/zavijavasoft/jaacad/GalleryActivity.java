@@ -40,9 +40,8 @@ public class GalleryActivity extends AppCompatActivity
     }
 
     @Override
-    public void showImage(String thumbnailFilename, String url, String fileName, String id) {
+    public void showImage(String thumbnailFilename, String fileName, String id) {
         Intent intent = new Intent(getApplicationContext(), ImageActivity.class);
-        intent.putExtra(ImageActivity.KEY_IMAGE_URL, url);
         intent.putExtra(ImageActivity.KEY_THUMBNAIL_FILENAME, thumbnailFilename);
         intent.putExtra(ImageActivity.KEY_IMAGE_FILENAME, fileName);
         intent.putExtra(ImageActivity.KEY_IMAGE_ID, id);

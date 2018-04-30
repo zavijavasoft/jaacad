@@ -1,5 +1,5 @@
 package com.zavijavasoft.jaacad;
 
 public interface ShowImageCallback {
-    void showImage(String thumbnailFilename, String url, String fileName, String id);
+    void showImage(String thumbnailFilename, String fileName, String id);
 }

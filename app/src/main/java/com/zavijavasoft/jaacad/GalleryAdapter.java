@@ -38,6 +38,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.Thumbnai
         String fileName;
         String imageId;
 
+
         ThumbnailViewHolder(View itemView, final ShowImageCallback callback) {
             super(itemView);
             this.callback = callback;
@@ -51,7 +52,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.Thumbnai
             cv.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    callback.showImage(thumbnailPath, url, fileName, imageId);
+                    callback.showImage(thumbnailPath, fileName, imageId);
                 }
             });
         }
