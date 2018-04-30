@@ -1,11 +1,8 @@
 <resources>
-    <string name="app_name">Jaacad</string>
+    <string name="app_name">Jaacad Фотогалерея</string>
     <string name="no_internet_excuse">К сожалению, приложение потеряло связь с сетью Интернет. Как только связь восстановится, нажмите кнопку Обновить.</string>
     <string name="no_internet_title">ПРОБЛЕМА СО СВЯЗЬЮ!</string>
     <string name="no_internet_update_button">обновить</string>
-
+    <string name="image_activity_file_size_template">Размер: %1$d байт</string>
     <string name="title_activity_image">ImageActivity</string>
-    <string name="dummy_button_upper">Upper Button</string>
-    <string name="dummy_button">Dummy Button</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
 </resources>

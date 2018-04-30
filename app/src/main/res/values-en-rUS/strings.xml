@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Jaacad Photo Gallery</string>
+    <string name="no_internet_title">NETWORK PROBLEM!</string>
+    <string name="no_internet_excuse">Unfortunately the application has lost Internet connection. After the connection restores press RETRY button below.</string>
+    <string name="no_internet_update_button">RETRY</string>
+    <string name="image_activity_file_size_template">Size %1$d bytes</string>
+</resources>
