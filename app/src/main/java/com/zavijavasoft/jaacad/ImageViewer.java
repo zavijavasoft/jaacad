@@ -1,5 +1,9 @@
 package com.zavijavasoft.jaacad;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -14,27 +18,23 @@ import android.view.View;
 
 public class ImageViewer extends View {
 
-    private Bitmap image = null;
     private final GestureDetector gestureDetector;
     private final ScaleGestureDetector scaleGestureDetector;
-
     private final Paint paint = new Paint();
+    private Bitmap image = null;
+
 
     private float scaleFactorOnLoad;
     private float scaleFactor;
+
+    private boolean isZooming = false;
+    private float scaleFocusX;
+    private float scaleFocusY;
+
     private float verticalRatio;
     private float horizontalRatio;
     private boolean isPortraitOrientation;
 
-
-
-    private int getScaledWidth() {
-        return (int) (image.getWidth() * scaleFactor);
-    }
-
-    private int getScaledHeight() {
-        return (int) (image.getHeight() * scaleFactor);
-    }
 
     public ImageViewer(Context context) {
         super(context);
@@ -45,6 +45,14 @@ public class ImageViewer extends View {
         setFocusable(true);
     }
 
+    private int getScaledWidth() {
+        return (int) (image.getWidth() * scaleFactor);
+    }
+
+    private int getScaledHeight() {
+        return (int) (image.getHeight() * scaleFactor);
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -52,7 +60,7 @@ public class ImageViewer extends View {
         canvas.drawBitmap(image, null, dst, paint);
     }
 
-    public void destroy(){
+    public void destroy() {
         image = null;
     }
 
@@ -63,18 +71,23 @@ public class ImageViewer extends View {
             invalidate();
             return true;
         }
+
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_UP:
-                ((View)getParent()).performClick();
-                invalidate();
+                if (!isZooming) {
+                    ((View) getParent()).performClick();
+                    invalidate();
+                }
                 break;
             default:
                 break;
         }
+
         if (scaleGestureDetector.onTouchEvent(event)) {
             invalidate();
             return true;
         }
+
 
         return false;
     }
@@ -107,21 +120,59 @@ public class ImageViewer extends View {
 
             if (isPortraitOrientation) {
                 if (scaleFactorOnLoad == verticalRatio) {
-                    scrollX = -(width - getScaledWidth()) / 2;
+                    scrollX = -(width - (int) (image.getWidth() * scaleFactorOnLoad)) / 2;
                 } else {
-                    scrollY = -(height - getScaledHeight()) / 2;
+                    scrollY = -(height - (int) (image.getHeight() * scaleFactorOnLoad)) / 2;
                 }
             } else {
                 if (scaleFactorOnLoad == horizontalRatio) {
-                    scrollY = -(height - getScaledHeight()) / 2;
+                    scrollY = -(height - (int) (image.getHeight() * scaleFactorOnLoad)) / 2;
                 } else {
-                    scrollX = -(width - getScaledWidth()) / 2;
+                    scrollX = -(width - (int) (image.getWidth() * scaleFactorOnLoad)) / 2;
                 }
             }
             scrollTo(scrollX, scrollY);
         }
     }
 
+    public float getScaleFocusX() {
+        return scaleFocusX;
+    }
+
+    public void setScaleFocusX(float scaleFocusX) {
+        this.scaleFocusX = scaleFocusX;
+    }
+
+    public float getScaleFocusY() {
+        return scaleFocusY;
+    }
+
+    public void setScaleFocusY(float scaleFocusY) {
+        this.scaleFocusY = scaleFocusY;
+    }
+
+    public float getScaleFactor() {
+        return scaleFactor;
+    }
+
+    public void setScaleFactor(float scaleFactor) {
+        float delta = scaleFactor / this.scaleFactor;
+        this.scaleFactor = scaleFactor;
+
+        if (scaleFactor > scaleFactorOnLoad) {
+
+            int sx = getScrollX();
+            int sy = getScrollY();
+            int newScrollX = (int) ((getScrollX() + scaleFocusX) * delta - scaleFocusX);
+            int newScrollY = (int) ((getScrollY() + scaleFocusY) * delta - scaleFocusY);
+            scrollTo(newScrollX, newScrollY);
+
+        } else {
+            centerImage();
+        }
+
+        invalidate();
+    }
 
     private class ImageGestureListener extends GestureDetector.SimpleOnGestureListener {
         @Override
@@ -138,31 +189,73 @@ public class ImageViewer extends View {
     }
 
     private class ImageScaleGestureListener implements ScaleGestureDetector.OnScaleGestureListener {
+
+
         public boolean onScale(ScaleGestureDetector detector) {
-            scaleFactor *= detector.getScaleFactor();
+            float delta = detector.getScaleFactor();
+            scaleFactor *= delta;
 
             scaleFactor = Math.max(scaleFactorOnLoad,
                     Math.min(scaleFactor, scaleFactorOnLoad * 3));
 
             if (scaleFactor > scaleFactorOnLoad) {
+
                 int newScrollX = (int) ((getScrollX() + detector.getFocusX()) * detector.getScaleFactor() - detector.getFocusX());
                 int newScrollY = (int) ((getScrollY() + detector.getFocusY()) * detector.getScaleFactor() - detector.getFocusY());
                 scrollTo(newScrollX, newScrollY);
+
             } else {
                 centerImage();
             }
             invalidate();
+
             return true;
 
 
         }
 
+
         public boolean onScaleBegin(ScaleGestureDetector detector) {
+
+            isZooming = true;
+            clearAnimation();
             return true;
         }
 
         public void onScaleEnd(ScaleGestureDetector detector) {
 
+            if (scaleFactor > scaleFactorOnLoad) {
+
+                scaleFocusX = detector.getFocusX();
+                scaleFocusY = detector.getFocusY();
+
+                final ObjectAnimator aniScale =
+                        ObjectAnimator.ofFloat(ImageViewer.this, "scaleFactor",
+                                scaleFactorOnLoad);
+                final ObjectAnimator aniFocusX =
+                        ObjectAnimator.ofFloat(ImageViewer.this, "scaleFocusX",
+                                getWidth() / 2);
+                final ObjectAnimator aniFocusY =
+                        ObjectAnimator.ofFloat(ImageViewer.this, "scaleFocusY",
+                                getHeight() / 2);
+                AnimatorSet animaSet = new AnimatorSet();
+                animaSet.playTogether(aniScale, aniFocusX, aniFocusY);
+                animaSet.setDuration(300);
+                animaSet.addListener(new AnimatorListenerAdapter() {
+
+
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        centerImage();
+                        isZooming = false;
+                    }
+                });
+
+                animaSet.start();
+            } else
+                centerImage();
+
         }
+
     }
 }
