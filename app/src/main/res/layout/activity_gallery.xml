@@ -1,16 +1,129 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/vlay_main_gallery"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/coorlay_main_gallery"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
- <LinearLayout
-     android:id="@+id/gallery_container"
-     android:orientation="vertical"
-     android:layout_width="match_parent"
-     android:layout_height="match_parent">
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/main.appbar"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:fitsSystemWindows="true"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
- </LinearLayout>
+        <android.support.design.widget.CollapsingToolbarLayout
+            android:id="@+id/main.collapsing"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fitsSystemWindows="true"
+            app:contentScrim="@color/cardview_dark_background"
+            app:expandedTitleMarginEnd="64dp"
+            app:expandedTitleMarginStart="48dp"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed|snap">
+
+            <ImageView
+                android:id="@+id/main.backdrop"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:fitsSystemWindows="true"
+                android:scaleType="centerCrop"
+                android:src="@drawable/jaacad_header_bg"
+                app:layout_collapseMode="parallax" />
+
+
+        </android.support.design.widget.CollapsingToolbarLayout>
+    </android.support.design.widget.AppBarLayout>
+
+    <LinearLayout
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:id="@+id/gallery_container"
+
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+
+        android:orientation="vertical">
+        <LinearLayout
+            android:orientation="horizontal"
+            android:background="@color/primary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <android.support.v7.widget.AppCompatSpinner
+                android:layout_marginTop="50dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginBottom="10dp"
+                app:backgroundTint="#ffffffff"
+                android:id="@+id/query_spinner"
+                android:textSize="20sp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_width="wrap_content">
+
+            </android.support.v7.widget.AppCompatSpinner>
+            <ImageButton
+                android:id="@+id/make_query_button"
+                android:background="@color/primary"
+                android:src="@drawable/ic_search_24px"
+                android:layout_marginTop="50dp"
+                android:paddingTop="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/main.toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?android:attr/actionBarSize"
+        android:background="@color/colorPrimary"
+        app:layout_anchor="@id/gallery_container"
+        app:theme="@style/ThemeOverlay.AppCompat.Dark"
+        app:title=""
+        >
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            >
+
+            <Space
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                />
+
+            <TextView
+                android:id="@+id/main.textview.title"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="8dp"
+                android:gravity="center_vertical"
+                android:text="Quila"
+                android:textColor="@android:color/white"
+                android:textSize="20sp"
+                />
+
+        </LinearLayout>
+    </android.support.v7.widget.Toolbar>
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/circle_avatar_view"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_gravity="center_horizontal"
+        android:src="@drawable/quila"
+        app:border_color="@android:color/white"
+        app:border_width="2dp"
+        app:finalHeight="@dimen/image_final_width"
+        app:finalYPosition="2dp"
+        app:layout_behavior="com.zavijavasoft.jaacad.AvatarImageBehavior"
+        app:startHeight="2dp"
+        app:startToolbarPosition="2dp"
+        app:startXPosition="2dp"
+        />
+
 
 </android.support.design.widget.CoordinatorLayout>

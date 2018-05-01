@@ -5,4 +5,19 @@
     <string name="no_internet_update_button">обновить</string>
     <string name="image_activity_file_size_template">Размер: %1$d байт</string>
     <string name="title_activity_image">ImageActivity</string>
+    <string name="need_authorization_message">Этот запрос требует авторизации на Яндекс.Диске</string>
+
+    <string name="query_100_lastpublic">100 последних авторских фото</string>
+    <string name="query_100_firstpublic">100 первых авторских фото</string>
+    <string name="query_100_lastauthorized">100 последних Ваших фото</string>
+    <string name="query_100_firstauthorized">100 первых фото Ваших фото</string>
+    <string name="query_100_randomauthorized">100 случайных Ваших фото</string>
+
+    <array name="queries">
+        <item>@string/query_100_lastpublic</item>
+        <item>@string/query_100_firstpublic</item>
+        <item>@string/query_100_lastauthorized</item>
+        <item>@string/query_100_firstauthorized</item>
+        <item>@string/query_100_randomauthorized</item>
+    </array>
 </resources>
