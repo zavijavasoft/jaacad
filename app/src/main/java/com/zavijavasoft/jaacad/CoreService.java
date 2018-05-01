@@ -27,7 +27,9 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CoreService extends IntentService implements ProgressListener {
 
@@ -43,13 +45,16 @@ public class CoreService extends IntentService implements ProgressListener {
     public static final String KEY_RESULT_NETWORK_EXCEPTION = "com.zavijavasoft.jaacad.RESULT_NETWORK_EXCEPTION";
     public static final String KEY_RESULT_IMAGE_DOWNLOAD_PROGRESS = "com.zavijavasoft.jaacad.RESULT_IMAGE_DOWNLOAD_PROGRESS";
     public static final String KEY_RESULT_IMAGE_DOWNLOAD_ID = "com.zavijavasoft.jaacad.RESULT_IMAGE_DOWNLOAD_ID";
+    private static final String KEY_RESULT_FILE_SIZE = "com.zavijavasoft.jaacad.RESULT_FILE_SIZE";
     public static final int CHECK_INTERNET_CONNECTION = 0;
+
     public static final int LOAD_LAST_100_AUTHORIZED = 1;
     public static final int LOAD_FIRST_100_AUTHORIZED = 2;
     public static final int LOAD_LAST_100_PUBLIC = 3;
     public static final int LOAD_FIRST_100_PUBLIC = 4;
     public static final int LOAD_RANDOM_100_AUTHORIZED = 5;
     public static final int LOAD_CACHED = 6;
+
     public static final int LOAD_SINGLE_THUMBNAIL = 50;
     public static final int LOAD_SINGLE_IMAGE = 51;
     public static final int CALCULATE_KEY_COLOR = 52;
@@ -68,10 +73,50 @@ public class CoreService extends IntentService implements ProgressListener {
     private boolean checkInternetPending = false;
     private ResultReceiver resultReceiver;
 
+    private static final Map<Integer, Integer> mapQueryCmd = new HashMap<>();
+    private static final Map<Integer, Integer> mapReQueryCmd = new HashMap<>();
 
+    static {
+        mapQueryCmd.put(LOAD_FIRST_100_AUTHORIZED,  R.string.query_100_firstauthorized);
+        mapQueryCmd.put(LOAD_LAST_100_AUTHORIZED,   R.string.query_100_lastauthorized);
+        mapQueryCmd.put(LOAD_FIRST_100_PUBLIC,      R.string.query_100_firstpublic);
+        mapQueryCmd.put(LOAD_LAST_100_PUBLIC,       R.string.query_100_lastpublic);
+        mapQueryCmd.put(LOAD_RANDOM_100_AUTHORIZED, R.string.query_100_randomauthorized);
+
+        mapReQueryCmd.put(R.string.query_100_firstauthorized,  LOAD_FIRST_100_AUTHORIZED);
+        mapReQueryCmd.put(R.string.query_100_lastauthorized,   LOAD_LAST_100_AUTHORIZED);
+        mapReQueryCmd.put(R.string.query_100_firstpublic,      LOAD_FIRST_100_PUBLIC);
+        mapReQueryCmd.put(R.string.query_100_lastpublic,       LOAD_LAST_100_PUBLIC );
+        mapReQueryCmd.put(R.string.query_100_randomauthorized, LOAD_RANDOM_100_AUTHORIZED);
+    }
+
+    public static boolean queryNeedAuthorization(int cmd){
+        switch (cmd){
+            case LOAD_FIRST_100_AUTHORIZED:
+            case LOAD_LAST_100_AUTHORIZED:
+            case LOAD_RANDOM_100_AUTHORIZED:
+                return true;
+        }
+        return false;
+    }
+
+    public static int getQueryResourceIdByCmd(int queryCmd){
+        Integer i = mapQueryCmd.get(queryCmd);
+        if (i != null)
+            return i;
+        return 0;
+    }
+
+    public static int getQueryCmdByResourceId(int queryResourceId){
+        Integer i = mapReQueryCmd.get(queryResourceId);
+        if (i != null)
+            return i;
+        return 0;
+    }
 
     public CoreService() {
         super(TAG);
+
     }
 
     @Override
@@ -193,6 +238,7 @@ public class CoreService extends IntentService implements ProgressListener {
                 restClient.downloadFile(geFound.getImageUrl(), result, this);
 
             geFound.setPathToImage(result.getAbsolutePath().toString());
+            persistenceManager.addFileToCache(geFound.getPathToImage(), false);
             bundle.putParcelable(KEY_RESULT_GALLERY_ENTITY, geFound);
             receiver.send(IMAGE_LOADED, bundle);
 
@@ -294,7 +340,7 @@ public class CoreService extends IntentService implements ProgressListener {
         ge.setThumbnailUrl(r.getPreview());
         ge.setFileName(r.getName());
         ge.setPathToThumbnail(result.getAbsolutePath().toString());
-
+        persistenceManager.addFileToCache(ge.getPathToThumbnail(), true);
         return ge;
     }
 
