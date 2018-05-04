@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.ResultReceiver;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -19,16 +20,17 @@ public class ImageActivity extends AppCompatActivity {
     public static final String KEY_THUMBNAIL_FILENAME = "com.zavijavasoft.jaacad.THUMBNAIL_FILENAME";
     public static final String KEY_IMAGE_FILENAME = "com.zavijavasoft.jaacad.IMAGE_FILENAME";
     public static final String KEY_IMAGE_ID = "com.zavijavasoft.jaacad.IMAGE_ID";
+    private static final String KEY_IS_LOADING_STATE = "com.zavijavasoft.jaacad.IS_LOADING_STATE";
 
-    private final Handler mHideHandler = new Handler();
+    private final Handler handler = new Handler();
 
 
     private FrameLayout mContentView;
 
     private ImageViewer imageViewer;
     private String thumbnailFileName = "";
-        private String imageFileName = "";
-    private String imageFilePath = "";
+    private String imageFileName = "";
+
     private String imageId = "";
     private long fileSize;
     private ImageResultReceiver resultReceiver;
@@ -39,30 +41,35 @@ public class ImageActivity extends AppCompatActivity {
     private ImageButton buttonLeave;
     private TextView textViewFileName;
     private TextView textViewFileSize;
+    private TextView textImageUnavailable;
+    private View imageUnavailableView;
 
     private boolean isBarsVisible;
-    private final Runnable mHideRunnable = new Runnable() {
-        @Override
-        public void run() {
-            toggle();
-        }
-    };
+
     private boolean isLoading;
 
 
     public ImageActivity() {
         super();
-        resultReceiver = new ImageResultReceiver();
+
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            isLoading = savedInstanceState.getBoolean(KEY_IS_LOADING_STATE);
+            resultReceiver = savedInstanceState.getParcelable(CoreService.KEY_INTENT_RECEIVER);
+        } else {
+            resultReceiver = new ImageResultReceiver();
+        }
+        resultReceiver.setActivity(this);
 
         Intent intent = getIntent();
         this.thumbnailFileName = intent.getStringExtra(KEY_THUMBNAIL_FILENAME);
         this.imageFileName = intent.getStringExtra(KEY_IMAGE_FILENAME);
         this.imageId = intent.getStringExtra(KEY_IMAGE_ID);
+
 
         setContentView(R.layout.activity_image);
 
@@ -74,8 +81,13 @@ public class ImageActivity extends AppCompatActivity {
         textViewFileName.setText(this.imageFileName);
         textViewFileSize = findViewById(R.id.image_file_size);
 
+
         fullScreenShadow = findViewById(R.id.fullscreen_shadow);
         progressBar = findViewById(R.id.image_progressbar);
+        imageUnavailableView = findViewById(R.id.image_unavailable_icon);
+        textImageUnavailable = findViewById(R.id.image_unavailable_text);
+        if (isLoading)
+            setLoadingMode();
 
         mContentView = findViewById(R.id.image_container);
         mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
@@ -85,8 +97,6 @@ public class ImageActivity extends AppCompatActivity {
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         imageViewer = new ImageViewer(getApplicationContext());
-        imageViewer.loadImage(thumbnailFileName);
-
         mContentView.addView(imageViewer, 0);
 
 
@@ -107,7 +117,20 @@ public class ImageActivity extends AppCompatActivity {
         });
     }
 
-    private void setLoadingMode() {
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putParcelable(CoreService.KEY_INTENT_RECEIVER, resultReceiver);
+        outState.putBoolean(KEY_IS_LOADING_STATE, isLoading);
+        super.onSaveInstanceState(outState);
+    }
+
+    public void setUnavailableMode() {
+        fullScreenShadow.setVisibility(View.VISIBLE);
+        textImageUnavailable.setVisibility(View.VISIBLE);
+        imageUnavailableView.setVisibility(View.VISIBLE);
+    }
+
+    public void setLoadingMode() {
         isLoading = true;
         fullScreenShadow.setVisibility(View.VISIBLE);
         progressBar.setVisibility(View.VISIBLE);
@@ -115,27 +138,25 @@ public class ImageActivity extends AppCompatActivity {
 
     }
 
-    private void cancelLoadingMode() {
+    public void cancelLoadingMode() {
         isLoading = false;
         fullScreenShadow.setVisibility(View.INVISIBLE);
         progressBar.setVisibility(View.INVISIBLE);
     }
 
+
     @Override
     protected void onResume() {
-        if (imageFilePath.isEmpty()) {
-            imageViewer.loadImage(thumbnailFileName);
-            setLoadingMode();
-            Intent intent = new Intent(ImageActivity.this, CoreService.class);
-            intent.putExtra(CoreService.KEY_INTENT_RECEIVER, resultReceiver);
-            intent.putExtra(CoreService.KEY_INTENT_QUERY_TYPE, CoreService.LOAD_SINGLE_IMAGE);
-            intent.putExtra(CoreService.KEY_REQUEST_ID, imageId);
-            startService(intent);
 
-        } else {
-            imageViewer.loadImage(imageFilePath);
-        }
+        setLoadingMode();
+        Intent intent = new Intent(ImageActivity.this, CoreService.class);
+        intent.putExtra(CoreService.KEY_INTENT_RECEIVER, resultReceiver);
+        intent.putExtra(CoreService.KEY_INTENT_QUERY_TYPE, CoreService.LOAD_SINGLE_IMAGE);
+        intent.putExtra(CoreService.KEY_REQUEST_ID, imageId);
+        startService(intent);
+
         super.onResume();
+
     }
 
     @Override
@@ -145,13 +166,22 @@ public class ImageActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onDestroy() {
+        resultReceiver.setActivity(null);
+        super.onDestroy();
+    }
+
+    @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
 
-        // Trigger the initial hide() shortly after the activity has been
-        // created, to briefly hint to the user that UI controls
-        // are available.
-        delayedHide(100);
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+
+                imageViewer.loadImage(thumbnailFileName);
+            }
+        });
     }
 
     private void toggle() {
@@ -166,49 +196,49 @@ public class ImageActivity extends AppCompatActivity {
     }
 
 
-    /**
-     * Schedules a call to hide() in delay milliseconds, canceling any
-     * previously scheduled calls.
-     */
-    private void delayedHide(int delayMillis) {
-        mHideHandler.removeCallbacks(mHideRunnable);
-        mHideHandler.postDelayed(mHideRunnable, delayMillis);
-    }
+    private static class ImageResultReceiver extends ResultReceiver {
 
+        transient private ImageActivity A = null;
 
-    private class ImageResultReceiver extends ResultReceiver {
         public ImageResultReceiver() {
             super(new Handler());
         }
 
+        public void setActivity(ImageActivity activity) {
+            A = activity;
+        }
+
+
         @Override
         protected void onReceiveResult(int resultCode, Bundle resultData) {
-            if (ImageActivity.this == null)
+            if (A == null)
                 return;
 
             switch (resultCode) {
-                case CoreService.NETWORK_EXCEPTION: {
-                    String message = resultData.getString(CoreService.KEY_RESULT_NETWORK_EXCEPTION);
-                    Intent intent = new Intent(getApplicationContext(), NoInternetActivity.class);
-                    intent.putExtra(CoreService.KEY_RESULT_NETWORK_EXCEPTION, message);
-                    ImageActivity.this.startActivity(intent);
+                case CoreService.IMAGE_UNAVAILABLE:
+                    A.setUnavailableMode();
                     break;
-                }
-
                 case CoreService.IMAGE_LOADED:
-                    cancelLoadingMode();
-                    GalleryEntity ge = resultData.getParcelable(CoreService.KEY_RESULT_GALLERY_ENTITY);
-                    imageFilePath = ge.getPathToImage();
-                    fileSize = new File(imageFilePath).length();
-                    imageViewer.loadImage(imageFilePath);
-                    textViewFileSize.setText(String.format(
-                            getString(R.string.image_activity_file_size_template),
-                            fileSize));
+                    try {
+                        A.cancelLoadingMode();
+                        GalleryEntity ge = resultData.getParcelable(CoreService.KEY_RESULT_GALLERY_ENTITY);
+                        String imageFilePath = ge.getPathToImage();
+                        A.fileSize = new File(imageFilePath).length();
+                        A.imageViewer.loadImage(imageFilePath);
+                        A.textViewFileSize.setText(String.format(
+                                A.getString(R.string.image_activity_file_size_template),
+                                A.fileSize));
+                        A.toggle();
+                    } catch (OutOfMemoryError e) {
+                        A.setUnavailableMode();
+                        Snackbar.make(A.fullScreenShadow, e.getLocalizedMessage(), Snackbar.LENGTH_LONG);
+
+                    }
                     break;
 
                 case CoreService.IMAGE_LOADING_PROGRESS: {
                     long percent = resultData.getLong(CoreService.KEY_RESULT_IMAGE_DOWNLOAD_PROGRESS);
-                    progressBar.setProgress((int) percent);
+                    A.progressBar.setProgress((int) percent);
                 }
             }
             super.onReceiveResult(resultCode, resultData);
