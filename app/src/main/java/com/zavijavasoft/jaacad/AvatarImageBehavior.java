@@ -20,6 +20,7 @@ public class AvatarImageBehavior extends CoordinatorLayout.Behavior<CircleImageV
 
     private final static String TAG = "behavior";
     private Context mContext;
+    private float globalScale;
 
     private float mCustomFinalYPosition;
     private float mCustomStartXPosition;
@@ -41,7 +42,7 @@ public class AvatarImageBehavior extends CoordinatorLayout.Behavior<CircleImageV
 
     public AvatarImageBehavior(Context context, AttributeSet attrs) {
         mContext = context;
-
+        globalScale = context.getResources().getDisplayMetrics().density;
 
         if (attrs != null) {
             TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.AvatarImageBehavior);
@@ -149,8 +150,9 @@ public class AvatarImageBehavior extends CoordinatorLayout.Behavior<CircleImageV
     }
 
     private void maybeInitProperties(CircleImageView child, View dependency) {
+
         if (mStartYPosition == 0)
-            mStartYPosition = (int) (dependency.getY());
+            mStartYPosition = (int) (dependency.getY() - child.getHeight() / 3);
 
         if (mFinalYPosition == 0)
             mFinalYPosition = (dependency.getHeight() / 2);
