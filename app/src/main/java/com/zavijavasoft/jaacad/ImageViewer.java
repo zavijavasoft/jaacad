@@ -104,7 +104,7 @@ public class ImageViewer extends View {
         horizontalRatio = (float) getWidth() / (float) image.getWidth();
         scaleFactor = scaleFactorOnLoad = Math.min(verticalRatio, horizontalRatio);
         centerImage();
-
+        invalidate();
 
     }
 
