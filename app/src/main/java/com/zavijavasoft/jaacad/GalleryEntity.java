@@ -27,7 +27,9 @@ public class GalleryEntity implements Parcelable {
     private String pathToImage;
     private Date loadedDateTime = new Date();
     private String fileName;
-    private int progressValue;
+    private String publicKey = "";
+    transient private int progressValue;
+    transient private boolean markedAsDead;
 
 
     public String getResourceId() {
@@ -110,6 +112,22 @@ public class GalleryEntity implements Parcelable {
         this.imageUrl = imageUrl;
     }
 
+    public String getPublicKey() {
+        return publicKey;
+    }
+
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
+    }
+
+    public boolean isMarkedAsDead() {
+        return markedAsDead;
+    }
+
+    public void setMarkedAsDead(boolean markedAsDead) {
+        this.markedAsDead = markedAsDead;
+    }
+
 
     @Override
     public int describeContents() {
@@ -127,7 +145,7 @@ public class GalleryEntity implements Parcelable {
         dest.writeString(this.pathToImage);
         dest.writeLong(this.loadedDateTime != null ? this.loadedDateTime.getTime() : -1);
         dest.writeString(this.fileName);
-        dest.writeInt(this.progressValue);
+        dest.writeString(this.publicKey);
     }
 
     public GalleryEntity() {
@@ -145,7 +163,7 @@ public class GalleryEntity implements Parcelable {
         long tmpLoadedDateTime = in.readLong();
         this.loadedDateTime = tmpLoadedDateTime == -1 ? null : new Date(tmpLoadedDateTime);
         this.fileName = in.readString();
-        this.progressValue = in.readInt();
+        this.publicKey = in.readString();
     }
 
     public static final Creator<GalleryEntity> CREATOR = new Creator<GalleryEntity>() {
