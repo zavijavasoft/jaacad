@@ -1,4 +1,4 @@
-package com.zavijavasoft.jaacad;
+package com.zavijavasoft.jaacad.auth;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -30,4 +30,5 @@ public class Credentials extends com.yandex.disk.rest.Credentials implements Par
         parcel.writeString(user);
         parcel.writeString(token);
     }
-}
+
+ }

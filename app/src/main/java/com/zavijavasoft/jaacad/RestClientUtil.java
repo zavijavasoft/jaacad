@@ -4,6 +4,7 @@ import com.facebook.stetho.okhttp.StethoInterceptor;
 import com.squareup.okhttp.OkHttpClient;
 import com.yandex.disk.rest.OkHttpClientFactory;
 import com.yandex.disk.rest.RestClient;
+import com.zavijavasoft.jaacad.auth.Credentials;
 
 public class RestClientUtil {
 
