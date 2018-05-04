@@ -23,10 +23,10 @@ import java.util.List;
 public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.ThumbnailViewHolder> {
 
     private List<GalleryEntity> entities;
-    private ShowImageCallback callback;
+    private OperationalDelegate callback;
 
     public static class ThumbnailViewHolder extends RecyclerView.ViewHolder {
-        ShowImageCallback callback;
+        OperationalDelegate callback;
         CardView cv;
         LinearLayout thumbnailCarcass;
         FrameLayout thumbnailBkGround;
@@ -39,7 +39,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.Thumbnai
         String imageId;
 
 
-        ThumbnailViewHolder(View itemView, final ShowImageCallback callback) {
+        ThumbnailViewHolder(View itemView, final OperationalDelegate callback) {
             super(itemView);
             this.callback = callback;
             cv = itemView.findViewById(R.id.thumbnail_cardview);
@@ -58,7 +58,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.Thumbnai
         }
     }
 
-    GalleryAdapter(ShowImageCallback callback) {
+    GalleryAdapter(OperationalDelegate callback) {
         this.entities = new LinkedList<>();
         this.callback = callback;
     }
@@ -110,6 +110,10 @@ public class GalleryAdapter extends RecyclerView.Adapter<GalleryAdapter.Thumbnai
         notifyDataSetChanged();
     }
 
+    public void clear(){
+        entities.clear();
+        notifyDataSetChanged();
+    }
 
      public void update(GalleryEntity entity) {
         int fixed = entities.size();
