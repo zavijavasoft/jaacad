@@ -1,6 +1,4 @@
-package com.zavijavasoft.jaacad.utils;
-
-import com.zavijavasoft.jaacad.GalleryEntity;
+package com.zavijavasoft.jaacad;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -16,8 +14,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Deque;
 import java.util.GregorianCalendar;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public class PersistenceManager {
 
@@ -30,6 +30,7 @@ public class PersistenceManager {
     private final List<GalleryEntity> entities = new LinkedList<>();
     private final Deque<String> imageCache = new ArrayDeque<>(IMAGE_CACHE_SIZE);
     private final Deque<String> thumbnailCache = new ArrayDeque<>(THUMBNAIL_CACHE_SIZE);
+    private final Set<String> cacheUniqueGuarantee = new HashSet<>();
 
 
     public List<GalleryEntity> getEntities() {
@@ -46,18 +47,24 @@ public class PersistenceManager {
             is.read(data);
 
 
+            cacheUniqueGuarantee.clear();
             JSONObject doc = new JSONObject(new String(data));
             boolean cacheAuthorized = doc.getBoolean("authorized");
             imageCache.clear();
             JSONArray arrImgCache = (JSONArray) doc.get("imageCache");
             for (int i = 0; i < arrImgCache.length(); i++) {
-                imageCache.push((String) arrImgCache.get(i));
+                String e = (String) arrImgCache.get(i);
+                imageCache.push(e);
+                cacheUniqueGuarantee.add(e);
             }
             thumbnailCache.clear();
             JSONArray arrThumbCache = (JSONArray) doc.get("thumbnailsCache");
 
             for (int i = 0; i < arrThumbCache.length(); i++) {
-                thumbnailCache.push((String) arrThumbCache.get(i));
+                String e = (String) arrThumbCache.get(i);
+                thumbnailCache.push(e);
+                cacheUniqueGuarantee.add(e);
+
             }
             entities.clear();
             // Тут сверяются состояния авторизации приложения на момент сохранения кэша и текущее.
@@ -69,6 +76,7 @@ public class PersistenceManager {
                 for (int i = 0; i < arr.length(); i++) {
                     JSONObject ent = arr.getJSONObject(i);
                     GalleryEntity e = new GalleryEntity();
+                    e.setPublicKey((String) ent.get("publicKey"));
                     e.setResourceId((String) ent.get("resourceId"));
                     e.setKeyColor((Integer) ent.get("keyColor"));
                     e.setPathToThumbnail((String) ent.get("pathToPreview"));
@@ -99,8 +107,6 @@ public class PersistenceManager {
                     entities.add(e);
                 }
             }
-
-
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -139,7 +145,10 @@ public class PersistenceManager {
 
             JSONArray arr = new JSONArray();
             for (GalleryEntity e : entities) {
+                if (e.isMarkedAsDead())
+                    continue;
                 JSONObject ent = new JSONObject();
+                ent.put("publicKey", e.getPublicKey());
                 ent.put("resourceId", e.getResourceId());
                 ent.put("keyColor", e.getKeyColor());
                 ent.put("pathToPreview", e.getPathToThumbnail());
@@ -173,14 +182,24 @@ public class PersistenceManager {
 
     }
 
-    public void checkStates(){
-        for(GalleryEntity e : entities){
-            if (e.getState() == GalleryEntity.State.IMAGE){
+    public GalleryEntity findEntityById(String id){
+        for (GalleryEntity e : entities){
+            if (e.isMarkedAsDead())
+                continue;
+            if (id.equals(e.getResourceId()))
+                return e;
+        }
+        return null;
+    }
+
+    private void checkStates() {
+        for (GalleryEntity e : entities) {
+            if (e.getState() == GalleryEntity.State.IMAGE) {
                 if (new File(e.getPathToImage()).exists())
                     continue;
                 e.setState(GalleryEntity.State.THUMBNAIL);
             }
-            if (e.getState() == GalleryEntity.State.THUMBNAIL){
+            if (e.getState() == GalleryEntity.State.THUMBNAIL) {
                 if (new File(e.getPathToThumbnail()).exists())
                     continue;
                 e.setState(GalleryEntity.State.ONCE_LOADED);
@@ -188,27 +207,22 @@ public class PersistenceManager {
         }
     }
 
-    public void clearCaches(){
-        while(!imageCache.isEmpty()){
+    public void clearCaches() {
+
+        cacheUniqueGuarantee.clear();
+        while (!imageCache.isEmpty()) {
             String toDelete = imageCache.pollLast();
             File file = new File(toDelete);
             file.delete();
         }
-        while(!thumbnailCache.isEmpty()){
+        while (!thumbnailCache.isEmpty()) {
             String toDelete = thumbnailCache.pollLast();
             File file = new File(toDelete);
             file.delete();
         }
     }
 
-    private void removeDuplicate(String filename, Deque<String> queue){
-        for (String s : queue){
-            if (s.equals(filename))
-                queue.remove(s);
-        }
-    }
-
-    public void addFileToCache(String fileName, boolean isThumbnail){
+     public void addFileToCache(String fileName, boolean isThumbnail) {
         Deque<String> queue = imageCache;
         int max = IMAGE_CACHE_SIZE;
         if (isThumbnail) {
@@ -216,10 +230,14 @@ public class PersistenceManager {
             max = THUMBNAIL_CACHE_SIZE;
         }
 
-        removeDuplicate(fileName, queue);
+        if(cacheUniqueGuarantee.contains(fileName))
+            return;
+
         queue.addFirst(fileName);
-        if (queue.size() > max){
+        cacheUniqueGuarantee.add(fileName);
+        if (queue.size() > max) {
             String sExceeded = queue.pollLast();
+            cacheUniqueGuarantee.remove(sExceeded);
             File file = new File(sExceeded);
             file.delete();
             checkStates();
