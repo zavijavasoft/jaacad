@@ -2,10 +2,14 @@
     <string name="app_name">Jaacad Фотогалерея</string>
     <string name="no_internet_excuse">К сожалению, приложение потеряло связь с сетью Интернет. Как только связь восстановится, нажмите кнопку Обновить.</string>
     <string name="no_internet_title">ПРОБЛЕМА СО СВЯЗЬЮ!</string>
+    <string name="no_internet_connection">Нет соединения с Интернетом</string>
+    <string name="image_unavailable_message">Изображение недоступно</string>
     <string name="no_internet_update_button">обновить</string>
     <string name="image_activity_file_size_template">Размер: %1$d байт</string>
     <string name="title_activity_image">ImageActivity</string>
     <string name="need_authorization_message">Этот запрос требует авторизации на Яндекс.Диске</string>
+    <string name="default_public_url">"https://yadi.sk/d/wcjuTZND3URnHp"</string>
+    <string name="avatar_filename_template">jaacad_avatar_%1$s.png</string>
 
     <string name="query_100_lastpublic">100 последних авторских фото</string>
     <string name="query_100_firstpublic">100 первых авторских фото</string>
