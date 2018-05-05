@@ -179,7 +179,8 @@ public class ImageActivity extends AppCompatActivity {
             @Override
             public void run() {
 
-                imageViewer.loadImage(thumbnailFileName);
+                if (new File(thumbnailFileName).exists())
+                    imageViewer.loadImage(thumbnailFileName);
             }
         });
     }
@@ -223,12 +224,16 @@ public class ImageActivity extends AppCompatActivity {
                         A.cancelLoadingMode();
                         GalleryEntity ge = resultData.getParcelable(CoreService.KEY_RESULT_GALLERY_ENTITY);
                         String imageFilePath = ge.getPathToImage();
-                        A.fileSize = new File(imageFilePath).length();
-                        A.imageViewer.loadImage(imageFilePath);
-                        A.textViewFileSize.setText(String.format(
-                                A.getString(R.string.image_activity_file_size_template),
-                                A.fileSize));
-                        A.toggle();
+                        if (new File(imageFilePath).exists()) {
+                            A.fileSize = new File(imageFilePath).length();
+                            A.imageViewer.loadImage(imageFilePath);
+                            A.textViewFileSize.setText(String.format(
+                                    A.getString(R.string.image_activity_file_size_template),
+                                    A.fileSize));
+                            A.toggle();
+                        } else {
+                            A.setUnavailableMode();
+                        }
                     } catch (OutOfMemoryError e) {
                         A.setUnavailableMode();
                         Snackbar.make(A.fullScreenShadow, e.getLocalizedMessage(), Snackbar.LENGTH_LONG);
