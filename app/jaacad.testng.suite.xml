@@ -1,0 +1,11 @@
+
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name="jaacadSuite">
+    <test name="persistence_manager">
+        <classes>
+            <class name="com.zavijavasoft.jaacad.PersistenceManagerTest"/>
+
+        </classes>
+    </test>
+
+</suite>

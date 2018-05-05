@@ -393,7 +393,7 @@ public class GalleryActivity extends AppCompatActivity
         mainProgressBar.setVisibility(View.INVISIBLE);
     }
 
-    private int performLoadCached(){
+    private void performLoadCached(){
         Intent intent = new Intent(this, CoreService.class);
         intent.putExtra(CoreService.KEY_INTENT_RECEIVER, resultReceiver);
         intent.putExtra(CoreService.KEY_INTENT_QUERY_TYPE, CoreService.LOAD_CACHED);
