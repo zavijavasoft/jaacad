@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Calendar;
@@ -207,19 +208,28 @@ public class PersistenceManager {
         }
     }
 
-    public void clearCaches() {
+    public void clearCaches(File directory) {
 
+        String [] files = directory.list(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                if (name.startsWith("jaacad_")){
+                    if (name.contains("_thumbnail_"))
+                        return true;
+                    if (name.contains("_image_"))
+                        return true;
+                }
+                return false;
+            }
+        });
+
+        for (String s: files){
+            File fl = new File(directory, s);
+            fl.delete();
+        }
         cacheUniqueGuarantee.clear();
-        while (!imageCache.isEmpty()) {
-            String toDelete = imageCache.pollLast();
-            File file = new File(toDelete);
-            file.delete();
-        }
-        while (!thumbnailCache.isEmpty()) {
-            String toDelete = thumbnailCache.pollLast();
-            File file = new File(toDelete);
-            file.delete();
-        }
+        imageCache.clear();
+        thumbnailCache.clear();
     }
 
      public void addFileToCache(String fileName, boolean isThumbnail) {
