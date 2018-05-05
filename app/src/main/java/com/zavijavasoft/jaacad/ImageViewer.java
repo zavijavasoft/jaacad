@@ -55,9 +55,11 @@ public class ImageViewer extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        Rect dst = new Rect(0, 0, getScaledWidth(), getScaledHeight());
-        canvas.drawBitmap(image, null, dst, paint);
+        if (image != null) {
+            super.onDraw(canvas);
+            Rect dst = new Rect(0, 0, getScaledWidth(), getScaledHeight());
+            canvas.drawBitmap(image, null, dst, paint);
+        }
     }
 
     public void destroy() {
