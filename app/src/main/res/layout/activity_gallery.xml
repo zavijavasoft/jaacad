@@ -47,11 +47,12 @@
         android:orientation="vertical">
         <LinearLayout
             android:orientation="horizontal"
-            android:background="@color/primary"
+            android:background="@color/colorPrimaryDark"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
             <android.support.v7.widget.AppCompatSpinner
-                android:layout_marginTop="50dp"
+
+                android:layout_marginTop="35dp"
                 android:layout_marginLeft="5dp"
                 android:layout_marginBottom="10dp"
                 app:backgroundTint="#ffffffff"
@@ -64,59 +65,19 @@
             </android.support.v7.widget.AppCompatSpinner>
             <ImageButton
                 android:id="@+id/make_query_button"
-                android:background="@color/primary"
+                android:background="@color/primaryDark"
                 android:src="@drawable/ic_search_24px"
-                android:layout_marginTop="50dp"
+                android:layout_marginTop="35dp"
                 android:paddingTop="5dp"
-                android:layout_marginRight="5dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginLeft="15dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
         </LinearLayout>
 
     </LinearLayout>
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/main.toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?android:attr/actionBarSize"
-        android:background="@color/colorPrimary"
-        app:layout_anchor="@id/gallery_container"
-        app:theme="@style/ThemeOverlay.AppCompat.Dark"
-        app:title=""
-        >
-
-        <android.support.constraint.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/main.textview.title"
-                android:layout_width="114dp"
-                android:layout_height="41dp"
-                android:layout_marginLeft="40dp"
-                android:layout_marginStart="40dp"
-                android:layout_marginTop="12dp"
-                android:gravity="center_vertical"
-                android:text="Галерея"
-                android:textColor="@android:color/white"
-                android:textSize="20sp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <ProgressBar
-                android:id="@+id/main_progress_bar"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="3dp"
-                app:layout_constraintTop_toBottomOf="@id/main.textview.title"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintHorizontal_bias="0.0"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent" />
-
-        </android.support.constraint.ConstraintLayout>
-    </android.support.v7.widget.Toolbar>
+    <include layout="@layout/gallery_toolbar" />
 
     <LinearLayout
         android:id="@+id/footer"
@@ -149,7 +110,7 @@
         android:layout_width="120dp"
         android:layout_height="120dp"
         android:layout_gravity="center_horizontal"
-        android:src="@drawable/quila"
+        android:src="@drawable/ic_gallery_icon"
         app:border_color="@android:color/white"
         app:border_width="2dp"
         app:finalHeight="@dimen/image_final_width"
