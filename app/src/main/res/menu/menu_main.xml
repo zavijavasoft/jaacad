@@ -4,13 +4,18 @@
     tools:context=".GalleryActivity">
 
     <item
-        android:id="@+id/action_settings"
+        android:id="@+id/action_clear_cache"
+        android:icon="@drawable/ic_clear_all_24px"
         android:orderInCategory="100"
         app:showAsAction="never"
-        android:title="Settings" />
+        android:tooltipText="@string/menu_item_clear_cache"
+        android:title="@string/menu_item_clear_cache" />
+    <item
+        android:id="@+id/action_logout"
+        android:icon="@drawable/ic_exit_to_app_24px"
+        android:orderInCategory="100"
+        app:showAsAction="never"
+        android:tooltipText="@string/menu_item_logout"
+        android:title="@string/menu_item_logout" />
 
-    <item android:id="@+id/menu_share"
-        android:icon="@drawable/ic_arrow_back_24px"
-        app:showAsAction="always"
-        android:title="Favorite" />
 </menu>
