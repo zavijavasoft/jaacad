@@ -50,7 +50,6 @@ public class GalleryActivity extends AppCompatActivity
     private static final float PERCENTAGE_TO_HIDE_TITLE_DETAILS = 0.3f;
     private static final int ALPHA_ANIMATIONS_DURATION = 200;
     private final Handler handler = new Handler();
-    boolean blockNetworkExceptions = false;
     private boolean mIsTheTitleVisible = false;
     private boolean mIsTheTitleContainerVisible = true;
     private boolean loadingProgressPending = false;
@@ -65,6 +64,7 @@ public class GalleryActivity extends AppCompatActivity
     private LinearLayout galleryContainer;
     private LinearLayout footer;
     private TextView mTitle;
+    private TextView greeting;
     private AppBarLayout appBarLayout;
     private Toolbar toolbar;
     private FragmentManager fragmentManager;
@@ -104,7 +104,7 @@ public class GalleryActivity extends AppCompatActivity
         footer = findViewById(R.id.footer);
 
         mTitle = findViewById(R.id.main_textview_title);
-
+        greeting = findViewById(R.id.authorization_text);
 
         // получаем экземпляр FragmentTransaction
         fragmentManager = getFragmentManager();
@@ -118,12 +118,12 @@ public class GalleryActivity extends AppCompatActivity
         }
         fragmentTransaction.commit();
 
-        //appBarLayout.addOnOffsetChangedListener(this);
+        appBarLayout.addOnOffsetChangedListener(this);
 
-        //toolbar.inflateMenu(R.menu.menu_main);
+        toolbar.inflateMenu(R.menu.menu_main);
         setSupportActionBar(toolbar);
 
-        //startAlphaAnimation(mTitle, 0, View.INVISIBLE);
+        startAlphaAnimation(mTitle, 0, View.INVISIBLE);
 
         avatarView = findViewById(R.id.circle_avatar_view);
         mainProgressBar = findViewById(R.id.main_progress_bar);
@@ -360,14 +360,14 @@ public class GalleryActivity extends AppCompatActivity
     private void handleAlphaOnTitle(float percentage) {
         if (percentage >= PERCENTAGE_TO_HIDE_TITLE_DETAILS) {
             if (mIsTheTitleContainerVisible) {
-                startAlphaAnimation(galleryContainer, ALPHA_ANIMATIONS_DURATION, View.INVISIBLE);
+                startAlphaAnimation(greeting, ALPHA_ANIMATIONS_DURATION, View.INVISIBLE);
                 mIsTheTitleContainerVisible = false;
             }
 
         } else {
 
             if (!mIsTheTitleContainerVisible) {
-                startAlphaAnimation(galleryContainer, ALPHA_ANIMATIONS_DURATION, View.VISIBLE);
+                startAlphaAnimation(greeting, ALPHA_ANIMATIONS_DURATION, View.VISIBLE);
                 mIsTheTitleContainerVisible = true;
             }
         }
@@ -437,11 +437,13 @@ public class GalleryActivity extends AppCompatActivity
         authService.setDefaultCredentials();
         authService.setAuthorized(false);
         avatarView.setImageDrawable(getResources().getDrawable(R.drawable.ic_gallery_icon));
+        greeting.setText(R.string.authorization_text_default);
     }
 
     public void completeAuthorization(String displayName, String prettyName, String
             avatarName, String token) {
         avatarView.setImageDrawable(Drawable.createFromPath(avatarName));
+        greeting.setText(getString(R.string.authorization_greeting, prettyName));
         SharedPreferences.Editor editor =
                 PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit();
         editor.putString(AuthService.USERNAME, displayName);

@@ -105,6 +105,18 @@
             />
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/authorization_text"
+        android:text="@string/authorization_text_default"
+        android:background="#00000000"
+        android:textColor="#ffffffff"
+        android:paddingTop="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        app:layout_anchor="@id/circle_avatar_view"
+        app:layout_anchorGravity="bottom"/>
+
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/circle_avatar_view"
         android:layout_width="120dp"
