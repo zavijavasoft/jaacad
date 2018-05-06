@@ -36,53 +36,196 @@ import java.util.Random;
 
 import retrofit.RestAdapter;
 
+/**
+ * Класс, реализующий IntentService для обработки сетевых запросов приложения
+ */
 public class CoreService extends IntentService implements ProgressListener {
 
     public static final String TAG = CoreService.class.getCanonicalName();
 
+    /* Ключи данных, передаваемых через Bundle*/
+    /**
+     * Ключ для идентификатора ресурса (MD5 хеш изображения)
+     */
     public static final String KEY_REQUEST_ID = "com.zavijavasoft.jaacad.REQUEST_ID";
-    public static final String KEY_INTENT_RECEIVER = "com.zavijavasoft.jaacad.INTENT_RECEIVER";
-    public static final String KEY_INTENT_QUERY_TYPE = "com.zavijavasoft.jaacad.INTENT_QUERY_TYPE";
-    public static final String KEY_RESULT_GALLERY_ENTITY = "com.zavijavasoft.jaacad.RESULT_GALLERY_ENTITY";
-    public static final String KEY_RESULT_SIZE = "com.zavijavasoft.jaacad.RESULT_CACHE_SIZE";
-    public static final String KEY_RESULT_NETWORK_EXCEPTION = "com.zavijavasoft.jaacad.RESULT_NETWORK_EXCEPTION";
-    public static final String KEY_RESULT_IMAGE_DOWNLOAD_PROGRESS = "com.zavijavasoft.jaacad.RESULT_IMAGE_DOWNLOAD_PROGRESS";
-    public static final String KEY_INTENT_AUTH_TOKEN = "com.zavijavasoft.jaacad.INTENT_AUTH_TOKEN";
-    public static final String KEY_RESULT_LOGIN_DISPLAY_NAME = "com.zavijavasoft.jaacad.RESULT_LOGIN_DISPLAY_NAME";
-    public static final String KEY_RESULT_LOGIN_AVATAR_FILENAME = "com.zavijavasoft.jaacad.RESULT_AVATAR_FILENAME";
-    public static final String KEY_RESULT_LOGIN_PRETTY_NAME = "com.zavijavasoft.jaacad.RESULT_PRETTY_NAME";
-    public static final String KEY_RESULT_FILE_SIZE = "com.zavijavasoft.jaacad.RESULT_FILE_SIZE";
 
-    // Запросы от активностей к службе
+    /**
+     * Ключ для экземпляра ResultReceiver
+     */
+    public static final String KEY_INTENT_RECEIVER = "com.zavijavasoft.jaacad.INTENT_RECEIVER";
+
+    /**
+     * Ключ для вида запроса (100 авторских, 100 личных и т.д.)
+     */
+    public static final String KEY_INTENT_QUERY_TYPE = "com.zavijavasoft.jaacad.INTENT_QUERY_TYPE";
+
+    /**
+     * Ключ для экземпляра GalleryEntity
+     */
+    public static final String KEY_RESULT_GALLERY_ENTITY = "com.zavijavasoft.jaacad.RESULT_GALLERY_ENTITY";
+
+    /**
+     * Ключ для размера выборки
+     */
+    public static final String KEY_RESULT_SIZE = "com.zavijavasoft.jaacad.RESULT_RESULT_SIZE";
+
+    /**
+     * Ключ для текстового сообщения о сетевом исключении
+     */
+    public static final String KEY_RESULT_NETWORK_EXCEPTION = "com.zavijavasoft.jaacad.RESULT_NETWORK_EXCEPTION";
+
+    /**
+     * Ключ для указания прогресса скачивания изображения
+     */
+    public static final String KEY_RESULT_IMAGE_DOWNLOAD_PROGRESS = "com.zavijavasoft.jaacad.RESULT_IMAGE_DOWNLOAD_PROGRESS";
+
+    /**
+     * Ключ для токена авторизации
+     */
+    public static final String KEY_INTENT_AUTH_TOKEN = "com.zavijavasoft.jaacad.INTENT_AUTH_TOKEN";
+
+    /**
+     * Ключ для отображаемого имени в Яндекс.Паспорте
+     */
+    public static final String KEY_RESULT_LOGIN_DISPLAY_NAME = "com.zavijavasoft.jaacad.RESULT_LOGIN_DISPLAY_NAME";
+
+    /**
+     * Ключ для имени файла аватара
+     */
+    public static final String KEY_RESULT_LOGIN_AVATAR_FILENAME = "com.zavijavasoft.jaacad.RESULT_AVATAR_FILENAME";
+
+    /**
+     * Ключ для "красивого имени"
+     */
+    public static final String KEY_RESULT_LOGIN_PRETTY_NAME = "com.zavijavasoft.jaacad.RESULT_PRETTY_NAME";
+
+
+    // Запросы от активностей к службе (KEY_INTENT_QUERY_TYPE).
+    /**
+     * Запрос на проверку подключения к интернету. Параметров нет
+     */
     public static final int CHECK_INTERNET_CONNECTION = 0;
+
+    /**
+     * Запрос на 100 последних авторизованных файлов. Параметров нет
+     */
     public static final int LOAD_LAST_100_AUTHORIZED = 1;
+
+    /**
+     * Запрос на 100 первых авторизованных файлов. Параметров нет
+     */
     public static final int LOAD_FIRST_100_AUTHORIZED = 2;
+
+    /**
+     * Запрос на 100 последних открытых файлов. Параметров нет
+     */
     public static final int LOAD_LAST_100_PUBLIC = 3;
+
+    /**
+     * Запрос на 100 последних открытых файлов. Параметров нет
+     */
     public static final int LOAD_FIRST_100_PUBLIC = 4;
+
+    /**
+     * Запрос на 100 случайных авторизованных файлов. Параметров нет
+     */
     public static final int LOAD_RANDOM_100_AUTHORIZED = 5;
+
+    /**
+     * Запрос на загрузку кешированных файлов. Параметров нет
+     */
     public static final int LOAD_CACHED = 6;
+
+    /**
+     * Запрос на информацию о логине. Параметр {@link #KEY_INTENT_AUTH_TOKEN}
+     */
     public static final int GET_LOGIN_INFO = 7;
+
+    /**
+     * Запрос очистку кэша. Параметров нет
+     */
     public static final int CLEAR_CACHE = 8;
+
+    /**
+     * Запрос на скачивание превью. Параметр {@link  #KEY_REQUEST_ID}
+     */
     public static final int LOAD_SINGLE_THUMBNAIL = 50;
+
+    /**
+     * Запрос на скачивание изображения. Параметр {@link #KEY_REQUEST_ID}
+     */
     public static final int LOAD_SINGLE_IMAGE = 51;
-    public static final int CALCULATE_KEY_COLOR = 52;
 
     // Ответы службы
+    /**
+     * Интернет в норме. Параметров нет
+     */
     public static final int INTERNET_OK = 200;
+    /**
+     * Подключение к интернету утеряно. Параметров нет
+     */
     public static final int INTERNET_LOST = 201;
-    public static final int INTERNET_ERROR = 202;
+    /**
+     * Сетевое исключение. Параметр {@link #KEY_RESULT_NETWORK_EXCEPTION}
+     */
     public static final int NETWORK_EXCEPTION = 400;
+    /**
+     * Размер выборки в возвращаемом запросе. Параметр {@link #KEY_RESULT_SIZE}
+     */
     public static final int RESULT_SIZE = 1;
+
+    /**
+     * Закешированный элемент загружен. Параметр {@link #KEY_RESULT_GALLERY_ENTITY}
+     */
     public static final int CACHED_ENTITY_LOADED = 2;
+
+    /**
+     * Превью загружено. Параметр {@link #KEY_RESULT_GALLERY_ENTITY}
+     */
     public static final int THUMBNAIL_LOADED = 3;
+
+    /**
+     * Ресурс недоступен. Параметр {@link #KEY_REQUEST_ID}
+     */
     public static final int RESOURCE_MISSED = 4;
+
+    /**
+     * Изображение загружено. Параметр {@link #KEY_RESULT_GALLERY_ENTITY}
+     */
     public static final int IMAGE_LOADED = 5;
+
+    /**
+     * Прогресс загрузки изображения. Параметр {@link #KEY_RESULT_IMAGE_DOWNLOAD_PROGRESS}
+     */
     public static final int IMAGE_LOADING_PROGRESS = 6;
+
+    /**
+     * Информация о логине. Параметры {@link #KEY_RESULT_LOGIN_AVATAR_FILENAME},
+     * {@link #KEY_RESULT_LOGIN_DISPLAY_NAME},
+     * {@link #KEY_RESULT_LOGIN_AVATAR_FILENAME},
+     * {@link #KEY_INTENT_AUTH_TOKEN}
+     */
     public static final int LOGIN_INFO = 7;
+
+    /**
+     * Изображение недоступно. Параметров нет
+     */
     public static final int IMAGE_UNAVAILABLE = 8;
+    /**
+     * Загружена часть метаинформации о файлах. Параметр {@link #KEY_RESULT_SIZE}
+     */
     public static final int CHUNK_LOADED = 9;
 
+    /**
+     * Структура, отображающая константы команд {@link CoreService} в константы ресурсов (элементы выпадающего
+     * списка на главной активности)
+     */
     public static final Map<Integer, Integer> mapQueryCmd = new HashMap<>();
+
+    /**
+     * Структура, отображающая константы  ресурсов (элементы выпадающего списка на главной активности)
+     * в константы команд {@link CoreService}
+     */
     public static final Map<Integer, Integer> mapReQueryCmd = new HashMap<>();
 
     static {
@@ -99,10 +242,29 @@ public class CoreService extends IntentService implements ProgressListener {
         mapReQueryCmd.put(R.string.query_100_randomauthorized, LOAD_RANDOM_100_AUTHORIZED);
     }
 
+    /**
+     * Экземпляр {@link PersistenceManager}, отвечающий за работу с кэшем
+     */
     private final PersistenceManager persistenceManager = new PersistenceManager();
+
+    /**
+     * Флаг, предотвращающий лавину запросов на проверку интернета
+     */
     private boolean checkInternetPending = false;
+
+    /**
+     * Ссылка на текущий ResultReceiver
+     */
     private ResultReceiver resultReceiver;
+
+    /**
+     * Ссылка на файловую директорию. Вообще получается легко из контекста, сюда вынесена для
+     * облегчения тестирования
+     */
     private File filesDirectory;
+    /**
+     * Ссылка на параметры авторизации. Также вынесена сюда для облегчения тестирования
+     */
     private Credentials credentials;
 
     public CoreService() {
@@ -110,6 +272,13 @@ public class CoreService extends IntentService implements ProgressListener {
 
     }
 
+    /**
+     * Статический метод для определения необходимости авторизации для выполнения того или иного
+     * запроса
+     *
+     * @param cmd код запроса
+     * @return true, если для выполнения запроса нужно быть авторизованным, false в противном случае
+     */
     public static boolean queryNeedAuthorization(int cmd) {
         switch (cmd) {
             case LOAD_FIRST_100_AUTHORIZED:
@@ -120,6 +289,12 @@ public class CoreService extends IntentService implements ProgressListener {
         return false;
     }
 
+    /**
+     * Статическая обертка-геттер для {@link #mapQueryCmd}
+     *
+     * @param queryCmd код запроса
+     * @return идентификатор строкового ресурса строки выпадающего списка
+     */
     public static int getQueryResourceIdByCmd(int queryCmd) {
         Integer i = mapQueryCmd.get(queryCmd);
         if (i != null)
@@ -127,6 +302,12 @@ public class CoreService extends IntentService implements ProgressListener {
         return 0;
     }
 
+    /**
+     * Статическая обертка-геттер для {@link #mapReQueryCmd}
+     *
+     * @param queryResourceId идентификатор строкового ресурса строки выпадающего списка
+     * @return код запроса
+     */
     public static int getQueryCmdByResourceId(int queryResourceId) {
         Integer i = mapReQueryCmd.get(queryResourceId);
         if (i != null)
@@ -152,6 +333,11 @@ public class CoreService extends IntentService implements ProgressListener {
     }
 
 
+    /**
+     * Главный обработчик интентов. Фактически диспетчеризует вызовы рабочих методов
+     *
+     * @param intent
+     */
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
 
@@ -205,6 +391,102 @@ public class CoreService extends IntentService implements ProgressListener {
 
     }
 
+    /**
+     * Отправка размера выборки
+     *
+     * @param receiver
+     * @param size     - размер выборки
+     */
+    private void sendQueryResultSize(ResultReceiver receiver, int size) {
+        Bundle bundleMeta = new Bundle();
+        bundleMeta.putInt(KEY_RESULT_SIZE, size);
+        receiver.send(RESULT_SIZE, bundleMeta);
+    }
+
+    /**
+     * Уведомление о потере ресурса
+     *
+     * @param receiver
+     */
+    private void sendMissingResource(ResultReceiver receiver) {
+        Bundle bundle = new Bundle();
+        receiver.send(RESOURCE_MISSED, bundle);
+    }
+
+
+    /**
+     * Наполняет список сущностей элементами согласно результатам запроса
+     *
+     * @param receiver
+     * @param list     список метаданных запрошенных файлов
+     * @param bPublic  флаг открытости изображений
+     * @throws CancelledDownloadException
+     * @throws DownloadNoSpaceAvailableException
+     * @throws HttpCodeException
+     * @throws IOException
+     */
+    private void sendThumbnailsInfo(ResultReceiver receiver, List<Resource> list, boolean bPublic)
+            throws CancelledDownloadException, DownloadNoSpaceAvailableException, HttpCodeException, IOException {
+        List<GalleryEntity> entities = persistenceManager.getEntities();
+        entities.clear();
+
+        for (Resource r : list) {
+            Bundle bundleResource = new Bundle();
+            GalleryEntity ge;
+            ge = loadGalleryEntity(null, r, bPublic);
+
+            bundleResource.putParcelable(KEY_RESULT_GALLERY_ENTITY, ge);
+            receiver.send(THUMBNAIL_LOADED, bundleResource);
+            entities.add(ge);
+        }
+    }
+
+    /**
+     * Генерирует, либо изменяет экземпляр GalleryEntity, заполняя его актуальными данными. Также
+     * скачивает из сети превью, используя скрытую возможность RestAPI Диска (пришлось эту возможность дописать)
+     *
+     * @param galleryEntity обновляемый экземпляр GalleryEntity. Если этот параметр равен null, создается новый экземпляр
+     * @param resource      метеданные скачиваемого изображения
+     * @param bPublic       флаг открытости изображения
+     * @return
+     * @throws CancelledDownloadException
+     * @throws DownloadNoSpaceAvailableException
+     * @throws HttpCodeException
+     * @throws IOException
+     */
+    private GalleryEntity loadGalleryEntity(GalleryEntity galleryEntity, Resource resource, boolean bPublic)
+            throws CancelledDownloadException, DownloadNoSpaceAvailableException, HttpCodeException, IOException {
+
+        RestClient restClient = RestClientUtil.getInstance(credentials);
+        File result = new File(filesDirectory,
+                new File("jaacad_" + resource.getMd5()
+                        + "_thumbnail_" + resource.getName()).getName());
+        if (!result.exists())
+            restClient.downloadUrl(resource.getPreview(), result, this);
+
+        if (galleryEntity == null)
+            galleryEntity = new GalleryEntity();
+        if (bPublic)
+            galleryEntity.setPublicKey(resource.getPublicKey());
+
+        galleryEntity.setState(GalleryEntity.State.THUMBNAIL);
+        galleryEntity.setLoadedDateTime(new Date());
+        galleryEntity.setResourceId(resource.getMd5());
+        galleryEntity.setImageUrl(resource.getPath().getPath());
+        galleryEntity.setThumbnailUrl(resource.getPreview());
+        galleryEntity.setFileName(resource.getName());
+        galleryEntity.setPathToThumbnail(result.getAbsolutePath().toString());
+        persistenceManager.addFileToCache(galleryEntity.getPathToThumbnail(), true);
+        return galleryEntity;
+    }
+
+
+    /**
+     * Отправляет в активити кэшированные записи. Здесь нет обращения к сети,
+     * на данном этапе приложение может работать оффлайн.
+     *
+     * @param receiver
+     */
     private void loadCache(ResultReceiver receiver) {
 
         List<GalleryEntity> entities = persistenceManager.getEntities();
@@ -220,12 +502,15 @@ public class CoreService extends IntentService implements ProgressListener {
         }
     }
 
-    private void sendQueryResultSize(ResultReceiver receiver, int size) {
-        Bundle bundleMeta = new Bundle();
-        bundleMeta.putInt(KEY_RESULT_SIZE, size);
-        receiver.send(RESULT_SIZE, bundleMeta);
-    }
 
+    /**
+     * Грузит некоторое количество открытых изображенийи из сети
+     *
+     * @param limit    количество изображений
+     * @param receiver
+     * @param last     порядок сортировки, если true, выдаются последние по дате создания файлы,
+     *                 в случае false -  первые
+     */
     private void loadPublic(final int limit, ResultReceiver receiver, boolean last) {
 
         RestClient restClient = RestClientUtil.getInstance(AuthService.defaultCredentials());
@@ -245,6 +530,15 @@ public class CoreService extends IntentService implements ProgressListener {
         }
     }
 
+    /**
+     * Грузит некоторое количество случайных закрытых изображенийи из сети.
+     * Так как RestAPI Диска не позволяет узнать, сколько изображений на диске есть всего,
+     * приходится разбивать процедуру скачивания метаданных на куски по 100 файлов.
+     * Чтобы пользователь не сильно скучал в это время, выводим асимптотический прогресс бар.
+     *
+     * @param limit    количество изображений
+     * @param receiver
+     */
     private void loadRandomAuthorized(final int limit, ResultReceiver receiver) {
 
         Random random = new Random();
@@ -295,7 +589,12 @@ public class CoreService extends IntentService implements ProgressListener {
 
     }
 
-
+    /**
+     * Грузит некоторое количество самых ранних закрытых изображенийи из сети
+     *
+     * @param limit    количество изображений
+     * @param receiver
+     */
     private void loadFirstAuthorized(final int limit, ResultReceiver receiver) {
 
         RestClient restClient = RestClientUtil.getInstance(credentials);
@@ -318,6 +617,12 @@ public class CoreService extends IntentService implements ProgressListener {
     }
 
 
+    /**
+     * Грузит некоторое количество самых поздних закрытых изображенийи из сети
+     *
+     * @param limit    количество изображений
+     * @param receiver
+     */
     private void loadLastAuthorized(final int limit, ResultReceiver receiver) {
 
         RestClient restClient = RestClientUtil.getInstance(credentials);
@@ -340,7 +645,12 @@ public class CoreService extends IntentService implements ProgressListener {
 
     }
 
-
+    /**
+     * Скачивает полноразмерное изображение из сети
+     *
+     * @param receiver
+     * @param resourceId идентификатор ресурса
+     */
     private void downloadImage(ResultReceiver receiver, String resourceId) {
 
         RestClient restClient = RestClientUtil.getInstance(credentials);
@@ -370,11 +680,12 @@ public class CoreService extends IntentService implements ProgressListener {
 
     }
 
-    private void sendMissingResource(ResultReceiver receiver) {
-        Bundle bundle = new Bundle();
-        receiver.send(RESOURCE_MISSED, bundle);
-    }
-
+    /**
+     * Скачивает превью из сети
+     *
+     * @param receiver
+     * @param resourceId идентификатор ресурса
+     */
     private void downloadThumbnail(ResultReceiver receiver, String resourceId) {
 
         RestClient restClient = RestClientUtil.getInstance(credentials);
@@ -407,49 +718,109 @@ public class CoreService extends IntentService implements ProgressListener {
         }
     }
 
-    private void sendThumbnailsInfo(ResultReceiver receiver, List<Resource> list, boolean bPublic)
-            throws CancelledDownloadException, DownloadNoSpaceAvailableException, HttpCodeException, IOException {
-        List<GalleryEntity> entities = persistenceManager.getEntities();
-        entities.clear();
+    /**
+     * Запрашивает инофрмацию из Яндекс.Паспорта по токену. Тут используется отдельная
+     * реализация Retrofit API （{@link com.zavijavasoft.jaacad.auth.LoginApi}）, потому как
+     * в Яндекс Auth API SDK работа с аватарками не предусмотрена (или я не понял как).
+     * Отдельное замечание: если аватарки нет, то в поле {@link LoginResponse#defaultAvatarId}
+     * возвращается строка "0/0-0". Такой идентификатор нельзя вставить
+     * в линк https://avatars.yandex.net/get-yapic/...,
+     * А вот в линк https://avatars.mds.yandex.net/get-yapic/0/0-0/islands-200 он прекрасно вставляется
+     *
+     * @param receiver
+     * @param token    Токен авторизации
+     */
+    private void requreLoginInfo(ResultReceiver receiver, final String token) {
 
-        for (Resource r : list) {
-            Bundle bundleResource = new Bundle();
-            GalleryEntity ge;
-            ge = loadGalleryEntity(null, r, bPublic);
+        RestClient restClient = RestClientUtil.getInstance(AuthService.defaultCredentials());
 
-            bundleResource.putParcelable(KEY_RESULT_GALLERY_ENTITY, ge);
-            receiver.send(THUMBNAIL_LOADED, bundleResource);
-            entities.add(ge);
+        try {
+            RestAdapter.Builder restAdapter = new RestAdapter.Builder()
+                    .setEndpoint("https://login.yandex.ru/info");
+
+            LoginApi api = restAdapter.build().create(LoginApi.class);
+
+            LoginResponse response = api.getLoginInfo("OAuth " + token,
+                    AuthService.USER_AGENT);
+            // https://avatars.yandex.net/get-yapic/<идентификатор портрета>/<размер>
+            String url;
+            if (response.isAvatarEmpty())
+                url = "https://avatars.mds.yandex.net/get-yapic/0/0-0/islands-200";
+            else
+                url = String.format("https://avatars.yandex.net/get-yapic/%s/%s/",
+                        response.getDefaultAvatarId(), "islands-200");
+            File avatarFileName = new File(filesDirectory,
+                    new File("jaacad_avatar_" + response.getDisplayName() + ".png").getName());
+            if (avatarFileName.exists())
+                avatarFileName.delete();
+            restClient.downloadUrl(url, avatarFileName, this);
+
+            Bundle bundle = new Bundle();
+            String sPrettyName = response.getFirstName();
+            if (sPrettyName == null)
+                sPrettyName = response.getRealName();
+            if (sPrettyName == null)
+                sPrettyName = response.getLastName();
+            if (sPrettyName == null)
+                sPrettyName = response.getDisplayName();
+
+            bundle.putString(KEY_RESULT_LOGIN_PRETTY_NAME, sPrettyName);
+            bundle.putString(KEY_RESULT_LOGIN_DISPLAY_NAME, response.getDisplayName());
+            bundle.putString(KEY_RESULT_LOGIN_AVATAR_FILENAME, avatarFileName.getAbsolutePath());
+            bundle.putString(KEY_INTENT_AUTH_TOKEN, token);
+            receiver.send(LOGIN_INFO, bundle);
+        } catch (Exception e) {
+            handleException(e, receiver);
         }
+
+
     }
 
-    private GalleryEntity loadGalleryEntity(GalleryEntity ge, Resource r, boolean bPublic)
-            throws CancelledDownloadException, DownloadNoSpaceAvailableException, HttpCodeException, IOException {
+    /**
+     * Проверка подключения к Интернету.
+     * Хотел по-патриотски коннектиться к yandex.ru, но он возвращает не код 200
+     *
+     * @param receiver
+     */
+    private void checkInternetConnection(ResultReceiver receiver) {
 
-        RestClient restClient = RestClientUtil.getInstance(credentials);
-        File result = new File(filesDirectory,
-                new File("jaacad_" + r.getMd5()
-                        + "_thumbnail_" + r.getName()).getName());
-        if (!result.exists())
-            restClient.downloadUrl(r.getPreview(), result, this);
-
-        if (ge == null)
-            ge = new GalleryEntity();
-        if (bPublic)
-            ge.setPublicKey(r.getPublicKey());
-
-        ge.setState(GalleryEntity.State.THUMBNAIL);
-        ge.setLoadedDateTime(new Date());
-        ge.setResourceId(r.getMd5());
-        ge.setImageUrl(r.getPath().getPath());
-        ge.setThumbnailUrl(r.getPreview());
-        ge.setFileName(r.getName());
-        ge.setPathToThumbnail(result.getAbsolutePath().toString());
-        persistenceManager.addFileToCache(ge.getPathToThumbnail(), true);
-        return ge;
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        // проверка подключения
+        if (activeNetwork != null && activeNetwork.isConnected()) {
+            try {
+                // тест доступности внешнего ресурса
+                URL url = new URL("http://www.google.com");
+                HttpURLConnection urlc = (HttpURLConnection) url.openConnection();
+                urlc.setRequestProperty("User-Agent", "test");
+                urlc.setRequestProperty("Connection", "close");
+                urlc.setConnectTimeout(1000); // Timeout в секундах
+                urlc.connect();
+                int nResponse = urlc.getResponseCode();
+                // статус ресурса OK
+                if (nResponse == 200) {
+                    receiver.send(INTERNET_OK, null);
+                    checkInternetPending = false;
+                    return;
+                }
+                // иначе проверка провалилась
+            } catch (Exception e) {
+                Log.d("my_tag", "Ошибка проверки подключения к интернету", e);
+                handleException(e, receiver);
+                checkInternetPending = false;
+                return;
+            }
+        }
+        checkInternetPending = false;
+        receiver.send(INTERNET_LOST, null);
     }
 
-
+    /**
+     * Обработка исключений
+     *
+     * @param e        - выброшенное исключение
+     * @param receiver
+     */
     private void handleException(Exception e, ResultReceiver receiver) {
         if (e instanceof HttpCodeException) {
             HttpCodeException httpCodeException = (HttpCodeException) e;
@@ -467,98 +838,26 @@ public class CoreService extends IntentService implements ProgressListener {
         }
     }
 
-        private void requreLoginInfo (ResultReceiver receiver,final String token){
 
-            RestClient restClient = RestClientUtil.getInstance(AuthService.defaultCredentials());
-
-            try {
-                RestAdapter.Builder restAdapter = new RestAdapter.Builder()
-                        .setEndpoint("https://login.yandex.ru/info");
-
-                LoginApi api = restAdapter.build().create(LoginApi.class);
-
-                LoginResponse response = api.getLoginInfo("OAuth " + token,
-                        AuthService.USER_AGENT);
-                // https://avatars.yandex.net/get-yapic/<идентификатор портрета>/<размер>
-                String url;
-                if (response.isAvatarEmpty())
-                    url = "https://avatars.mds.yandex.net/get-yapic/0/0-0/islands-200";
-                else
-                    url = String.format("https://avatars.yandex.net/get-yapic/%s/%s/",
-                            response.getDefaultAvatarId(), "islands-200");
-                File avatarFileName = new File(filesDirectory,
-                        new File("jaacad_avatar_" + response.getDisplayName() + ".png").getName());
-                if (avatarFileName.exists())
-                    avatarFileName.delete();
-                restClient.downloadUrl(url, avatarFileName, this);
-
-                Bundle bundle = new Bundle();
-                String sPrettyName = response.getRealName();
-                if (sPrettyName == null)
-                    sPrettyName = response.getLastName();
-                if (sPrettyName == null)
-                    sPrettyName = response.getFirstName();
-                if (sPrettyName == null)
-                    sPrettyName = response.getDisplayName();
-
-                bundle.putString(KEY_RESULT_LOGIN_PRETTY_NAME, sPrettyName);
-                bundle.putString(KEY_RESULT_LOGIN_DISPLAY_NAME, response.getDisplayName());
-                bundle.putString(KEY_RESULT_LOGIN_AVATAR_FILENAME, avatarFileName.getAbsolutePath());
-                bundle.putString(KEY_INTENT_AUTH_TOKEN, token);
-                receiver.send(LOGIN_INFO, bundle);
-            } catch (Exception e) {
-                handleException(e, receiver);
-            }
-
-
+    /**
+     * Реализация метода  {@link ProgressListener}
+     *
+     * @param loaded
+     * @param total
+     */
+    @Override
+    public void updateProgress(long loaded, long total) {
+        if (total != 0) {
+            Bundle bundle = new Bundle();
+            bundle.putLong(KEY_RESULT_IMAGE_DOWNLOAD_PROGRESS, (100 * loaded) / total);
+            resultReceiver.send(IMAGE_LOADING_PROGRESS, bundle);
         }
-
-        private void checkInternetConnection (ResultReceiver receiver){
-
-            ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-            NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-            // проверка подключения
-            if (activeNetwork != null && activeNetwork.isConnected()) {
-                try {
-                    // тест доступности внешнего ресурса
-                    URL url = new URL("http://www.google.com");
-                    HttpURLConnection urlc = (HttpURLConnection) url.openConnection();
-                    urlc.setRequestProperty("User-Agent", "test");
-                    urlc.setRequestProperty("Connection", "close");
-                    urlc.setConnectTimeout(1000); // Timeout в секундах
-                    urlc.connect();
-                    int nResponse = urlc.getResponseCode();
-                    // статус ресурса OK
-                    if (nResponse == 200) {
-                        receiver.send(INTERNET_OK, null);
-                        checkInternetPending = false;
-                        return;
-                    }
-                    // иначе проверка провалилась
-                } catch (Exception e) {
-                    Log.d("my_tag", "Ошибка проверки подключения к интернету", e);
-                    handleException(e, receiver);
-                    checkInternetPending = false;
-                    return;
-                }
-            }
-            checkInternetPending = false;
-            receiver.send(INTERNET_LOST, null);
-        }
-
-        @Override
-        public void updateProgress ( long loaded, long total){
-            if (total != 0) {
-                Bundle bundle = new Bundle();
-                bundle.putLong(KEY_RESULT_IMAGE_DOWNLOAD_PROGRESS, (100 * loaded) / total);
-                resultReceiver.send(IMAGE_LOADING_PROGRESS, bundle);
-            }
-        }
-
-        @Override
-        public boolean hasCancelled () {
-            return false;
-        }
-
-
     }
+
+    @Override
+    public boolean hasCancelled() {
+        return false;
+    }
+
+
+}
