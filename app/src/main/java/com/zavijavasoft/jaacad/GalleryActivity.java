@@ -144,6 +144,7 @@ public class GalleryActivity extends AppCompatActivity
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         final String username = preferences.getString(AuthService.USERNAME, null);
         final String token = preferences.getString(AuthService.TOKEN, null);
+        final String prettyName = preferences.getString(AuthService.PRETTY_NAME, AuthService.PRETTY_NAME);
 
         if (token != null) {
             handler.post(new Runnable() {
@@ -154,6 +155,7 @@ public class GalleryActivity extends AppCompatActivity
                     File avatarFileName = new File(getApplicationContext().getFilesDir(),
                             new File(sFileName).getName());
                     avatarView.setImageDrawable(Drawable.createFromPath(avatarFileName.toString()));
+                    greeting.setText(getString(R.string.authorization_greeting, prettyName));
                     authService.setAuthorized(true);
                     performLoadCached();
                 }
@@ -433,6 +435,7 @@ public class GalleryActivity extends AppCompatActivity
                 PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit();
         editor.remove(AuthService.USERNAME);
         editor.remove(AuthService.TOKEN);
+        editor.remove(AuthService.PRETTY_NAME);
         editor.apply();
         authService.setDefaultCredentials();
         authService.setAuthorized(false);
@@ -448,6 +451,7 @@ public class GalleryActivity extends AppCompatActivity
                 PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit();
         editor.putString(AuthService.USERNAME, displayName);
         editor.putString(AuthService.TOKEN, token);
+        editor.putString(AuthService.PRETTY_NAME, prettyName);
         editor.apply();
         authService.setCredentials(displayName, token);
         authService.setAuthorized(true);

@@ -14,6 +14,7 @@ public class AuthService {
 
     public static final String AUTH_URL = "https://oauth.yandex.ru/authorize?response_type=token&client_id="+CLIENT_ID;
 
+    public static final String PRETTY_NAME = "pretty.example.username";
     public static final String USERNAME = "example.username";
     public static final String TOKEN = "example.token";
     public static final String CURRENT_DIR_TAG = "jaacad.current.dir";
