@@ -21,14 +21,14 @@
 
         <TextView
             android:id="@+id/main.textview.title"
-            android:layout_width="114dp"
+            android:layout_width="240dp"
             android:layout_height="41dp"
             android:layout_marginLeft="40dp"
             android:layout_marginStart="40dp"
             android:layout_marginTop="8dp"
             android:gravity="center_vertical"
             android:paddingBottom="2dp"
-            android:text="Галере.Я"
+            android:text="@string/app_name"
             android:textColor="@android:color/white"
             android:textSize="20sp"
             app:layout_constraintStart_toStartOf="parent"

@@ -13,11 +13,5 @@
     <dimen name="image_final_width">32dp</dimen>
     <dimen name="spacing_normal">16dp</dimen>
 
-     <!-- strings -->
-
-    <string name="quila_name">Quila</string>
-    <string name="quila_tagline">I love bones and slippers</string>
-    <string name="quila_name2">Quila!</string>
-
 
 </resources>

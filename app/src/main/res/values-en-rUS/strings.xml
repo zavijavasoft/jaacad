@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Jaacad Photo Gallery</string>
+    <string name="app_name">PhotoGaller.Y</string>
     <string name="no_internet_title">NETWORK PROBLEM!</string>
     <string name="no_internet_excuse">Unfortunately the application has lost Internet connection. After the connection restores press RETRY button below.</string>
     <string name="no_internet_update_button">RETRY</string>
     <string name="image_activity_file_size_template">Size %1$d bytes</string>
+    <string name="no_internet_connection">No internet connection</string>
+    <string name="image_unavailable_message">Image unavailable</string>
+    <string name="menu_item_clear_cache">Clear cache</string>
+    <string name="menu_item_logout">Logout Yandex.Disk</string>
+    <string name="need_authorization_message">This will require authorization in Yandex.Disk</string>
+    <string name="authorization_text_default">You are not authorized in Yandex.Disk</string>
+    <string name="authorization_greeting">Hello, %1$s!</string>
+    <string name="query_100_lastpublic">100 last author\'s photos</string>
+    <string name="query_100_firstpublic">100 first author\'s photos</string>
+    <string name="query_100_lastauthorized">100 last your photos</string>
+    <string name="query_100_firstauthorized">100 first your photos</string>
+    <string name="query_100_randomauthorized">100 random yours photos</string>
 </resources>
